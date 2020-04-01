@@ -1,0 +1,198 @@
+
+# struc2frm
+
+<img src="./struc2frm.gif" 
+    style="margin-left: 150px; float: right;  width: 280px;  position: relative; left: -40px; top: -9px;">
+
+## Golang Struct to HTML Form
+
+* Package struc2frm converts or transforms a  
+golang `struct` into an `HTML input form`
+
+* Field info is taken from the `json` struct tag.
+
+* Additional attributes are taken from the `form` struct tag
+
+* Package does not provide parsing request forms into a struct type.  
+For this, we recommend `github.com/go-playground/form`  
+since it accepts json tags despite containing `,omitempty`.  
+
+* `github.com/go-playground/form` also tolerates superfluous request fields -  
+thus the submit button does not cause an error.
+
+<div style="clear:both;"></div>
+
+Example
+
+```golang
+type entryForm struct {
+    Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',title='loading items'"`
+    HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',suffix='changes randomness'"`
+    Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
+    Items       string `json:"items,omitempty"         form:"subtype='textarea',cols='48',rows='22',maxlength='4000',title='add times - delimited by newline (enter)'"`
+    Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
+    Group01     string `json:"group01,omitempty"       form:"subtype='fieldset'"`
+    CheckThis   bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
+    Date        string `json:"date,omitempty"          form:"subtype='date',min='1989-10-29',max='2030-10-29'"`
+    Group02     string `json:"group02,omitempty"       form:"subtype='fieldset'"`
+    Time        string `json:"time,omitempty"          form:"subtype='time',maxlength='12',size='12'"`
+    DateLayout  string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{10}',placeholder='2006/01/02 15:04'"` // 2006-01-02 15:04
+
+    // Requires distinct way of form parsing
+    // Upload     []byte `json:"upload,omitempty"       form:"accesskey='u',accept='.xlsx'"`
+}
+
+// getting a converter
+s2f := struc2frm.New()
+s2f.ShowHeadline = true
+s2f.AddOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
+
+// init values
+frm := entryForm{
+    HashKey: time.Now().Format("2006-01-02"),
+    Groups:  4,
+    Date:    time.Now().Format("2006-01-02"),
+    Time:    time.Now().Format("15:04"),
+}
+
+// pulling in values from http request
+dec := form.NewDecoder()
+dec.SetTagName("json") // recognizes and ignores ,omitempty
+err = dec.Decode(&frm, req.Form)
+if err != nil {
+    fmt.Fprintf(w, "Could not decode form: %v <br>\n", err)
+}
+
+// render to HTML
+fmt.Fprint(w, s2f.HTML(frm))
+```
+
+Fully functional example code in `directory systemtest`
+
+## Select / dropdown inputs
+
+* Use `string` field with subtype `select`
+
+* Use `AddOptions()` to fill input[select] elements
+
+* Use `onchange='true'`
+
+## Other field specifics
+
+* Use `float64` or `int` to create number inputs - with attributes `min=1,max=100,step=2`.  
+Notice that `step=2` defines maximum precision; uneven number become invalid.  
+This is an [HTML5 restriction](https://stackoverflow.com/questions/14365348/)
+
+* `string`, `textarea`, `float64` and `int` fields have the attributes `maxlength='16',size='16'`
+
+* `string` supports attributes `placeholder='2006/01/02 15:04',pattern='[0-9\\.\\-/]{10}'`  
+to show a pattern to the user (placeholder)  
+and to restrict the entry to a regular expression
+
+* Use `string` field with subtype `textarea` and attributes `cols='32',rows='22'`
+
+* Use `string` field with subtype `date` and attributes  `min='1989-10-29'` or `max=...`
+
+* Use `string` field with subtype `time`
+
+* Use `bool` to create a checkbox
+
+* Every `string` field with subtype `separator` is rendered into a horizontal line
+
+* Every `string` field with subtype `fieldset` is rendered into grouping box with label
+
+## General
+
+* Every field can have an attribute `suffix=...`
+
+* Every field can have an attribute `title=...`  
+for mouse-over tooltips
+
+* Every field  can have an attribute `accesskey='t'`  
+Accesskeys are not put into the label, but into the input tag.
+
+* Every field  can have an attribute `nobreak='true'`  
+so that the next input remains on the same line
+
+## File upload
+
+* input[file] must have golang type `[]byte`
+
+* input[file] should be named `upload`  
+and _requires_ `ParseMultipartForm()` instead of `ParseForm()`
+
+* `ParseMultipartForm()` and `ExtractUploadedFile()` are helper funcs  
+to extract file upload data.
+
+Example
+
+```golang
+err = struc2frm.ParseMultipartForm(r)
+if err != nil {
+    fmt.Fprintf(w, "Cannot parse multi part form: %v<br>\n <pre>%v</pre><br>\n", err, util.IndentedDump(r.MultipartForm))
+}
+
+frm := *newloadAsset()
+dec := form.NewDecoder()
+dec.SetTagName("json") // recognizes and ignores ,omitempty
+err = dec.Decode(&frm, r.Form)
+if err != nil {
+    fmt.Fprintf(w, "Cannot decode form into struct: %v<br>\n <pre>%v</pre><br>\n", err, util.IndentedDump(r.Form))
+}
+
+
+bts, excelFileName, err := struc2frm.ExtractUploadedFile(r)
+if err != nil {
+    fmt.Fprintf(w, "Cannot extract file from POST form: %v<br>\n <pre>%v</pre><br>\n", err, util.IndentedDump(r.Form))
+}
+if len(bts) > 0 && excelFileName != "" {
+    fmt.Fprintf(w, "%v bytes read from excel file -%v- <br>\n", len(bts), excelFileName)
+    ok = true
+} else {
+```
+
+## CSS Styling
+
+Styling is done via CSS selectors  
+and can be customized  
+by changing or appending `struc2frm.New().CSS`
+
+```CSS
+div.struc2frm {
+    padding: 4px;
+}
+div.struc2frm  input {
+    margin:  4px;
+}
+```
+
+The media query CSS block in default `struc2frm.New().CSS`  
+can be used to change the label width depending on screen width.
+
+Label width can also be changed by setting  
+via `struc2frm.New().Indent` and `struc2frm.New().IndentAddenum`
+to none-zero values.
+
+```CSS
+div.struc2frm-34323168 H3 {
+    margin-left: 116px; /* programmatically set via s3f.Indent for each form */
+}
+```
+
+## Submit button
+
+If your form only has `select` inputs with `onchange='this.form.submit()'`  
+then no submit button is shown.
+
+This can be overridden by setting `struc2frm.New().ShowSubmit` to true.
+
+## Technical remarks
+
+* Default CSS is init-loaded from an in-package file `default.css`,  
+mostly to have syntax highlighting while editing it.
+
+## TODO
+
+* Testing
+
+* Low Prio: Add field type `option group`
