@@ -1,13 +1,15 @@
 
 # struc2frm
 
-<img src="./struc2frm.gif" 
-    style="margin-left: 150px; float: right;  width: 280px;  position: relative; left: -40px; top: -9px;">
+![./struc2frm.jpg](./struc2frm.jpg)
 
 ## Golang Struct to HTML Form
 
 * Package struc2frm converts or transforms a  
-golang `struct` into an `HTML input form`
+golang `struct` into an `HTML input form`.
+
+* Tired of the boilerplate?  
+All your admin and backend forms generated directly from golang structs.
 
 * Field info is taken from the `json` struct tag.
 
@@ -20,23 +22,21 @@ since it accepts json tags despite containing `,omitempty`.
 * `github.com/go-playground/form` also tolerates superfluous request fields -  
 thus the submit button does not cause an error.
 
-<div style="clear:both;"></div>
-
 Example
 
 ```golang
 type entryForm struct {
     Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',title='loading items'"`
+    Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
     HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',suffix='changes randomness'"`
     Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
-    Items       string `json:"items,omitempty"         form:"subtype='textarea',cols='48',rows='22',maxlength='4000',title='add times - delimited by newline (enter)'"`
-    Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
+    Items       string `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='12',maxlength='4000',title='add times - delimited by newline (enter)'"`
     Group01     string `json:"group01,omitempty"       form:"subtype='fieldset'"`
-    CheckThis   bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
-    Date        string `json:"date,omitempty"          form:"subtype='date',min='1989-10-29',max='2030-10-29'"`
-    Group02     string `json:"group02,omitempty"       form:"subtype='fieldset'"`
+    Date        string `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
     Time        string `json:"time,omitempty"          form:"subtype='time',maxlength='12',size='12'"`
+    Group02     string `json:"group02,omitempty"       form:"subtype='fieldset'"`
     DateLayout  string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{10}',placeholder='2006/01/02 15:04'"` // 2006-01-02 15:04
+    CheckThis   bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
 
     // Requires distinct way of form parsing
     // Upload     []byte `json:"upload,omitempty"       form:"accesskey='u',accept='.xlsx'"`
@@ -81,7 +81,7 @@ Fully functional example code in `directory systemtest`
 
 * Use `float64` or `int` to create number inputs - with attributes `min=1,max=100,step=2`.  
 Notice that `step=2` defines maximum precision; uneven number become invalid.  
-This is an [HTML5 restriction](https://stackoverflow.com/questions/14365348/)
+This is an [HTML5 restriction](https://stackoverflow.com/questions/14365348/).
 
 * `string`, `textarea`, `float64` and `int` fields have the attributes `maxlength='16',size='16'`
 
@@ -109,7 +109,7 @@ and to restrict the entry to a regular expression
 for mouse-over tooltips
 
 * Every field  can have an attribute `accesskey='t'`  
-Accesskeys are not put into the label, but into the input tag.
+Accesskeys are not put into the label, but into the input tag
 
 * Every field  can have an attribute `nobreak='true'`  
 so that the next input remains on the same line
@@ -122,7 +122,7 @@ so that the next input remains on the same line
 and _requires_ `ParseMultipartForm()` instead of `ParseForm()`
 
 * `ParseMultipartForm()` and `ExtractUploadedFile()` are helper funcs  
-to extract file upload data.
+to extract file upload data
 
 Example
 
@@ -176,6 +176,16 @@ to none-zero values.
 ```CSS
 div.struc2frm-34323168 H3 {
     margin-left: 116px; /* programmatically set via s3f.Indent for each form */
+}
+```
+
+```CSS
+/* change specific inputs */
+div.struc2frm label[for="time"] {
+    min-width: 20px;
+}
+div.struc2frm select[name="department"] {
+    background-color: darkkhaki;
 }
 ```
 

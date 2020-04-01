@@ -81,10 +81,7 @@ func mainH(w http.ResponseWriter, req *http.Request) {
 		log.Fatalf("Could not parse form: %v", err)
 	}
 
-	// bts2, err := json.MarshalIndent(req.Form, " ", "\t")
-	// if err != nil {
-	// 	log.Fatalf("Could not re-marshal form: %v", err)
-	// }
+	// bts2, _ := json.MarshalIndent(req.Form, " ", "\t")
 	// fmt.Fprintf(w, "<br><br>Form was: <pre>%v</pre> <br>\n", string(bts2))
 
 	type entryForm struct {
@@ -107,7 +104,6 @@ func mainH(w http.ResponseWriter, req *http.Request) {
 	s2f := struc2frm.New()
 	s2f.ShowHeadline = true
 	s2f.AddOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
-	s2f.Indent = 0
 
 	// init values
 	frm := entryForm{
