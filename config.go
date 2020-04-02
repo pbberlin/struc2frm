@@ -1,4 +1,4 @@
-package main
+package struc2frm
 
 import (
 	"encoding/json"
@@ -18,10 +18,14 @@ type ConfigT struct {
 
 var cfgS *ConfigT // package variable 'singleton' - needs to be an allocated struct - to hold pointer receiver-re-assignment
 
-func cfgLoad() {
+// CfgLoad needs to be exported
+func CfgLoad() {
 	f, err := os.Open("./config.json")
 	if err != nil {
-		log.Fatal(err)
+		f, err = os.Open("../config.json")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	decoder := json.NewDecoder(f)
 	tempCfg := ConfigT{}

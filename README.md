@@ -5,6 +5,8 @@
 
 ## Golang Struct to HTML Form
 
+[![Travis Build](https://travis-ci.org/pbberlin/struc2frm.svg?branch=master)](https://travis-ci.org/pbberlin/struc2frm)        [![codecov](https://codecov.io/gh/pbberlin/struc2frm/branch/master/graph/badge.svg)](https://codecov.io/gh/pbberlin/struc2frm)
+
 * Package struc2frm converts or transforms a  
 golang `struct` into an `HTML input form`.
 
@@ -196,14 +198,19 @@ then no submit button is shown.
 
 This can be overridden by setting `struc2frm.New().ShowSubmit` to true.
 
-## Technical remarks
+## Technical stuff
+
+Language | files | blank | comment | code
+---      | ---   | ---   | ---     | ---
+Go               |                5   |         123      |       68    |        672
+Markdown         |                1   |          61      |        0    |        150
+CSS              |                1   |          26      |        8    |        120
+HTML             |                1   |           6      |        1    |         30
 
 * Default CSS is init-loaded from an in-package file `default.css`,  
 mostly to have syntax highlighting while editing it.
 
-* Unit test inside `systemtest`
-
 ## TODO
 
 * Low Prio: Add field type `option group`  
-Use select / dropdown
+meanwhile use `select / dropdown`

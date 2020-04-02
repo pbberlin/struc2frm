@@ -1,4 +1,4 @@
-package main
+package struc2frm
 
 import (
 	"fmt"
@@ -10,10 +10,9 @@ import (
 	"time"
 )
 
-// https://blog.questionable.services/article/testing-http-handlers-go/
 func TestMainH(t *testing.T) {
 
-	cfgLoad()
+	CfgLoad()
 
 	req, err := http.NewRequest("GET", "/", nil) // create request without query params
 	if err != nil {
@@ -21,7 +20,7 @@ func TestMainH(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder() //  satisfying http.ResponseWriter for recording
-	handler := http.HandlerFunc(mainH)
+	handler := http.HandlerFunc(MainH)
 
 	handler.ServeHTTP(w, req)
 
@@ -37,7 +36,7 @@ func TestMainH(t *testing.T) {
 	<option value='fm'          >FM</option>
 </select><br>
 <div class='separator'></div>
-<label for='hashkey' style='' >Hashkey</label><input type='text' name='hashkey' id='hashkey' value='2020-04-02'  maxlength='16' size='16' /><span class='suffix' >changes randomness</span><br>
+<label for='hashkey' style='' >Hashkey</label><input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' /><span class='suffix' >changes randomness</span><br>
 <label for='groups' style='' >Groups</label><input type='number' name='groups' id='groups' value='4'  min=1 max='100' maxlength='3' size='3' /><br>
 <label for='items' style='vertical-align: top;' >Items</label><textarea name='items' id='items'  subtype='textarea' cols='22' rows='12' maxlength='4000' title='add times - delimited by newline (enter)' />Brutsyum, Zusoh
 Bysshelz, Cusle
@@ -71,7 +70,7 @@ Rtoynbsonnos, Tars</textarea><br>
 </form>
 </div>`
 
-	expected = fmt.Sprintf(expected, time.Now().Format("2006-01-02"), time.Now().Format("15:04"))
+	expected = fmt.Sprintf(expected, time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02"), time.Now().Format("15:04"))
 	body := w.Body.String()
 	if !strings.Contains(body, expected) {
 		// t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)

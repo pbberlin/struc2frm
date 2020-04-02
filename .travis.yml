@@ -1,0 +1,52 @@
+language: go
+
+go:
+  # go 1.10.x does no longer work because of Alex Edwards scs go getting...
+  # - 1.10.2 
+  - 1.13
+  # - tip
+
+os:
+  - linux
+  # - osx
+  
+services:
+  # - mysql
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - wget
+
+  
+env:
+  matrix:
+    - DATASOURCE1=travis   SQL_PW=""    GO111MODULE=on   CODECOV_TOKEN="5223b84b-6a98-46c1-882e-0bf0307eef2b"
+
+before_install:
+  # - go get -v github.com/golang/lint/golint
+  - go get -t -v ./...
+
+
+install:
+  # Adding Godeps dependencies to GOPATH and PATH
+  # - export GOPATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace:$GOPATH"
+  # - export PATH="${TRAVIS_BUILD_DIR}/Godeps/_workspace/bin:$PATH"
+  # - go get -u github.com/zew/go-questionnaire
+  - go get -t ./...  
+
+before_script:
+  # - mysql -e 'create database exceldb_test;'
+  # - go vet ./...
+
+script:
+  # - go test -v ./...
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
+notifications:
+  email: false
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
