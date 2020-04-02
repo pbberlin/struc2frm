@@ -201,8 +201,9 @@ This can be overridden by setting `struc2frm.New().ShowSubmit` to true.
 * Default CSS is init-loaded from an in-package file `default.css`,  
 mostly to have syntax highlighting while editing it.
 
+* Unit test inside `systemtest`
+
 ## TODO
 
-* Testing
-
-* Low Prio: Add field type `option group`
+* Low Prio: Add field type `option group`  
+Use select / dropdown

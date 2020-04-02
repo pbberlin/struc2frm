@@ -1,3 +1,6 @@
 # Binaries for programs and plugins
 *.exe
 *.exe~
+
+# Test files
+tmp*
