@@ -21,10 +21,17 @@ func main() {
 	pfx := struc2frm.CfgGet().URLPathPrefix
 
 	mux1 := http.NewServeMux() // base router
-	mux1.HandleFunc("/", struc2frm.MainH)
+
+	mux1.HandleFunc("/", struc2frm.FormH)
 	if pfx != "" {
-		mux1.HandleFunc("/"+pfx, struc2frm.MainH)
-		mux1.HandleFunc("/"+pfx+"/", struc2frm.MainH)
+		mux1.HandleFunc("/"+pfx, struc2frm.FormH)
+		mux1.HandleFunc("/"+pfx+"/", struc2frm.FormH)
+	}
+
+	mux1.HandleFunc("/file-upload", struc2frm.FileUploadH)
+	if pfx != "" {
+		mux1.HandleFunc("/"+pfx+"/file-upload", struc2frm.FileUploadH)
+		mux1.HandleFunc("/"+pfx+"/file-upload/", struc2frm.FileUploadH)
 	}
 
 	mux4 := http.NewServeMux() // top router for non-middlewared handlers

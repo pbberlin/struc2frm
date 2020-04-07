@@ -28,13 +28,14 @@ func init() {
 	defaultHTML = string(bts)
 }
 
-// MainH is an example http handler func
-func MainH(w http.ResponseWriter, req *http.Request) {
+// FormH is an example http handler func
+func FormH(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
 
 	err := req.ParseForm()
 	if err != nil {
-		log.Fatalf("Could not parse form: %v", err)
+		fmt.Fprintf(w, "Cannot parse form: %v<br>\n", err)
+		return
 	}
 
 	// bts2, _ := json.MarshalIndent(req.Form, " ", "\t")

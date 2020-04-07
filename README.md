@@ -129,29 +129,57 @@ to extract file upload data
 Example
 
 ```golang
-err = struc2frm.ParseMultipartForm(r)
+err := ParseMultipartForm(req)
 if err != nil {
-    fmt.Fprintf(w, "Cannot parse multi part form: %v<br>\n <pre>%v</pre><br>\n", err, util.IndentedDump(r.MultipartForm))
+    fmt.Fprintf(w, "Cannot parse multi part form: %v<br>\n", err)
+    return
 }
 
-frm := *newloadAsset()
+type entryForm struct {
+    TextField string `json:"text_field,omitempty"   form:"maxlength='16',size='16'"`
+    // Requires distinct way of form parsing
+    Upload []byte `json:"upload,omitempty"          form:"accesskey='u',accept='.txt',suffix='*.txt files'"`
+}
+
+s2f := New()
+s2f.ShowHeadline = true
+s2f.Indent = 80
+
+// init values
+frm := entryForm{
+    TextField: "some-init-text",
+}
+
 dec := form.NewDecoder()
 dec.SetTagName("json") // recognizes and ignores ,omitempty
-err = dec.Decode(&frm, r.Form)
+err = dec.Decode(&frm, req.Form)
 if err != nil {
-    fmt.Fprintf(w, "Cannot decode form into struct: %v<br>\n <pre>%v</pre><br>\n", err, util.IndentedDump(r.Form))
+    fmt.Fprintf(w, "Could not decode form: %v <br>\n", err)
 }
 
-
-bts, excelFileName, err := struc2frm.ExtractUploadedFile(r)
+bts, excelFileName, err := ExtractUploadedFile(req)
 if err != nil {
-    fmt.Fprintf(w, "Cannot extract file from POST form: %v<br>\n <pre>%v</pre><br>\n", err, util.IndentedDump(r.Form))
+    fmt.Fprintf(w, "Cannot extract file from POST form: %v<br>\n", err)
 }
+
+fileMsg := ""
 if len(bts) > 0 && excelFileName != "" {
-    fmt.Fprintf(w, "%v bytes read from excel file -%v- <br>\n", len(bts), excelFileName)
-    ok = true
+    fileMsg = fmt.Sprintf("%v bytes read from excel file -%v- <br>\n", len(bts), excelFileName)
+    fileMsg = fmt.Sprintf("%vFile content is --%v-- <br>\n", fileMsg, string(bts))
 } else {
+    fileMsg = "No upload filename - or empty file<br>\n"
+
+}
+
+fmt.Fprintf(
+    w,
+    defaultHTML,
+    s2f.HTML(frm),
+    fileMsg,
+)
 ```
+
+See `handler-file-upload_test.go` on how to programmatically POST a file and key-values.
 
 ## CSS Styling
 

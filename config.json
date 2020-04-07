@@ -1,6 +1,6 @@
 {
         "app_name": "Struct to form test",
-        "urlpaAs_prefix": "survey",
+        "urlpath_prefix": "survey",
         "bind_host": "0.0.0.0",
         "bind_socket": 8083,
 

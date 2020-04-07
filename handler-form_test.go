@@ -20,7 +20,7 @@ func TestMainH(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder() //  satisfying http.ResponseWriter for recording
-	handler := http.HandlerFunc(MainH)
+	handler := http.HandlerFunc(FormH)
 
 	handler.ServeHTTP(w, req)
 

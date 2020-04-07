@@ -41,7 +41,7 @@ type options []option
 type s2FT struct {
 	Indent        int                // horizontal width of the labels column
 	IndentAddenum int                // for h3-headline and submit button, depends on CSS paddings and margins of div and input
-	ShowSubmit    bool               // show submit, despite having only auto-changing selects
+	ForceSubmit   bool               // show submit, despite having only auto-changing selects
 	ShowHeadline  bool               // headline derived from struct name
 	Method        string             // form method - default is POST
 	SelectOptions map[string]options // select inputs get their options from here
@@ -57,7 +57,7 @@ func New() *s2FT {
 		Indent:        0,           // non-zero values override the CSS
 		IndentAddenum: 2 * (4 + 4), // horizontal padding and margin
 
-		ShowSubmit:    false,
+		ForceSubmit:   false,
 		ShowHeadline:  false,
 		SelectOptions: map[string]options{},
 		Method:        "POST",
@@ -505,7 +505,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		fmt.Fprint(w, "</fieldset>")
 	}
 
-	if needSubmit || s2f.ShowSubmit {
+	if needSubmit || s2f.ForceSubmit {
 		// name should *not* be 'submit'
 		// avoiding error on this.form.submit()
 		// 'submit is not a function' stackoverflow.com/questions/833032/
