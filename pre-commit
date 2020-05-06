@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# since appengine does not find static files
+# in packages, we create this backup upon each git commit
+
+echo    "package struc2frm"             >  static.go
+echo    ''                              >> static.go
+
+
+echo -n  "const staticTplMainHTML = \`"  >>  static.go
+cat      tpl-main.html                   >>  static.go
+echo     "\`" >>  static.go
+echo    ''                              >> static.go
+
+
+echo -n "const staticDefaultCSS  = \`"  >>  static.go
+cat     default.css                     >>  static.go
+echo    "\`" >>  static.go

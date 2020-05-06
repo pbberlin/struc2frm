@@ -19,6 +19,21 @@ import (
 	"unicode"
 )
 
+var defaultHTML = ""
+
+func init() {
+	_, filename, _, _ := runtime.Caller(0)
+	sourceDirPath := path.Join(path.Dir(filename), "tpl-main.html")
+	bts, err := ioutil.ReadFile(sourceDirPath)
+	if err != nil {
+		log.Printf("Could not load main template: %v", err)
+		defaultHTML = staticTplMainHTML
+		log.Printf("Loaded %v chars from static.go instead", len(staticTplMainHTML))
+		return
+	}
+	defaultHTML = string(bts)
+}
+
 var defaultCSS = ""
 
 func init() {
@@ -27,6 +42,9 @@ func init() {
 	bts, err := ioutil.ReadFile(sourceDirPath)
 	if err != nil {
 		log.Printf("Could not load default CSS: %v", err)
+		defaultCSS = "<style>\n" + staticDefaultCSS + "\n</style>"
+		log.Printf("Loaded %v chars from static.go instead", len(staticDefaultCSS))
+		return
 	}
 	defaultCSS = "<style>\n" + string(bts) + "\n</style>"
 }
