@@ -3,11 +3,7 @@ package struc2frm
 import (
 	"crypto"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
-	"path"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,18 +11,6 @@ import (
 
 	"github.com/go-playground/form"
 )
-
-var defaultHTML = ""
-
-func init() {
-	_, filename, _, _ := runtime.Caller(0)
-	sourceDirPath := path.Join(path.Dir(filename), "tpl-main.html")
-	bts, err := ioutil.ReadFile(sourceDirPath)
-	if err != nil {
-		log.Fatalf("Could not load main template: %v", err)
-	}
-	defaultHTML = string(bts)
-}
 
 // FormH is an example http handler func
 func FormH(w http.ResponseWriter, req *http.Request) {
