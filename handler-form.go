@@ -28,14 +28,14 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	type entryForm struct {
 		Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',title='loading items'"`
 		Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
-		HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',suffix='changes randomness'"`
+		HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
 		Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
 		Items       string `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='12',maxlength='4000',title='add times - delimited by newline (enter)'"`
 		Group01     string `json:"group01,omitempty"       form:"subtype='fieldset'"`
 		Date        string `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
 		Time        string `json:"time,omitempty"          form:"subtype='time',maxlength='12',size='12'"`
 		Group02     string `json:"group02,omitempty"       form:"subtype='fieldset'"`
-		DateLayout  string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{10}',placeholder='2006/01/02 15:04'"` // 2006-01-02 15:04
+		DateLayout  string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04'"` // 2006-01-02 15:04
 		CheckThis   bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
 
 		// Requires distinct way of form parsing

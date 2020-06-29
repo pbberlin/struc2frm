@@ -39,7 +39,7 @@ func TestMainH(t *testing.T) {
 	<div style='height:0.6rem'>&nbsp;</div>
 	<div class='separator'></div>
 	<label for='hashkey' style='' >Hashkey</label>
-	<input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' /><span class='suffix' >changes randomness</span>
+	<input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' /><span class='suffix' >salt, changes randomness</span>
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='groups' style='' >Groups</label>
 	<input type='number' name='groups' id='groups' value='4'  min=1 max='100' maxlength='3' size='3' />
@@ -75,7 +75,7 @@ Rtoynbsonnos, Tars</textarea>
 </fieldset>
 <fieldset>	<legend>&nbsp;Group 02&nbsp;</legend>
 	<label for='date_layout' style='' >Da<u>t</u>e  layout</label>
-	<input type='text' name='date_layout' id='date_layout' value=''  accesskey='t' maxlength='16' size='16' pattern='[0-9\.\-/]{10}' placeholder='2006/01/02 15:04' />
+	<input type='text' name='date_layout' id='date_layout' value=''  accesskey='t' maxlength='16' size='16' pattern='[0-9\.\-/]{2,10}' placeholder='2006/01/02 15:04' />
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='checkthis' style='' >Checkthis</label>
 	<input type='checkbox' name='checkthis' id='checkthis' value='true'   />
