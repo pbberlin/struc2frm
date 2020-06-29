@@ -82,7 +82,7 @@ Fully functional example code in `directory systemtest`
 ## Other field specifics
 
 * Use `float64` or `int` to create number inputs - with attributes `min=1,max=100,step=2`.  
-Notice that `step=2` defines maximum precision; uneven number become invalid.  
+Notice that `step=2` defines maximum precision; uneven numbers become invalid.  
 This is an [HTML5 restriction](https://stackoverflow.com/questions/14365348/).
 
 * `string`, `textarea`, `float64` and `int` fields have the attributes `maxlength='16',size='16'`

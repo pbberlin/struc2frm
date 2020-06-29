@@ -54,9 +54,14 @@ func TestFileUpload(t *testing.T) {
 
 	// Check the response body
 	expected1 := `<form      method='post'   enctype='multipart/form-data'>
-<label for='text_field' style='' >Text  field</label><input type='text' name='text_field' id='text_field' value='posted-text'  maxlength='16' size='16' /><br>
-<label for='upload' style='' ><u>U</u>pload</label><input type='file'   name='upload'     id='upload'     value='ignored.json'  accesskey='u' accept='.txt' /><span class='suffix' >*.txt files</span><br>
-<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button><br>
+	<label for='text_field' style='' >Text  field</label>
+	<input type='text' name='text_field' id='text_field' value='posted-text'  maxlength='16' size='16' />
+	<div style='height:0.6rem'>&nbsp;</div>
+	<label for='upload' style='' ><u>U</u>pload</label>
+	<input type='file'   name='upload'     id='upload'     value='ignored.json'  accesskey='u' accept='.txt' /><span class='suffix' >*.txt files</span>
+	<div style='height:0.6rem'>&nbsp;</div>
+	<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button>
+	<div style='height:0.6rem'>&nbsp;</div>
 </form>`
 
 	expected2 := `16 bytes read from excel file -upload-file.txt- <br>

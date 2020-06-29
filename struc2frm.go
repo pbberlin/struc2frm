@@ -66,7 +66,8 @@ type s2FT struct {
 
 	InstanceID string // to distinguish several instances of a website
 
-	CSS string // general formatting - provided defaults can be replaced
+	CSS            string  // general formatting - provided defaults can be replaced
+	VerticalSpacer float64 // in CSS REM
 }
 
 // New converter
@@ -88,6 +89,7 @@ func New() *s2FT {
 	// CSS
 
 	s2f.CSS = defaultCSS
+	s2f.VerticalSpacer = 0.6
 
 	return &s2f
 }
@@ -130,6 +132,10 @@ func (s2f *s2FT) RenderCSS(w io.Writer) {
 	fmt.Fprint(w, specific)
 }
 
+func (s2f *s2FT) verticalSpacer() string {
+	return fmt.Sprintf("\t<div style='height:%3.1frem'>&nbsp;</div>", s2f.VerticalSpacer)
+}
+
 // AddOptions is used by the caller to prepare option key-values
 // for the rendering into HTML()
 func (s2f *s2FT) AddOptions(name string, keys, values []string) {
@@ -157,9 +163,9 @@ func (opts options) HTML(selected string) string {
 	w := &bytes.Buffer{}
 	for _, o := range opts {
 		if o.Key == selected {
-			fmt.Fprintf(w, "\t<option value='%v' selected >%v</option>\n", o.Key, o.Val)
+			fmt.Fprintf(w, "\t\t<option value='%v' selected >%v</option>\n", o.Key, o.Val)
 		} else {
-			fmt.Fprintf(w, "\t<option value='%v'          >%v</option>\n", o.Key, o.Val)
+			fmt.Fprintf(w, "\t\t<option value='%v'          >%v</option>\n", o.Key, o.Val)
 		}
 	}
 	return w.String()
@@ -450,7 +456,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		if toInputType(tp, attrs) != "separator" &&
 			toInputType(tp, attrs) != "fieldset" {
 			fmt.Fprintf(w,
-				"<label for='%s' style='%v' >%v</label>", // no whitespace - input immediately afterwards
+				"\t<label for='%s' style='%v' >%v</label>\n", // no whitespace - input immediately afterwards
 				inpName, specialVAlign, accessKeyify(frmLabel, attrs),
 			)
 		}
@@ -464,36 +470,36 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 				checked = "checked"
 
 			}
-			fmt.Fprintf(w, "<input type='%v' name='%v' id='%v' value='%v' %v %v />\n", toInputType(tp, attrs), inpName, inpName, "true", checked, structTagsToAttrs(attrs))
-			fmt.Fprintf(w, "<input type='hidden' name='%v' value='false' />\n", inpName)
+			fmt.Fprintf(w, "\t<input type='%v' name='%v' id='%v' value='%v' %v %v />\n", toInputType(tp, attrs), inpName, inpName, "true", checked, structTagsToAttrs(attrs))
+			fmt.Fprintf(w, "\t<input type='hidden' name='%v' value='false' />", inpName)
 		case "file":
 			needSubmit = true
 			//              <input type="file" name="upload" id="upload" value="ignored.json" accept=".json" >
-			fmt.Fprintf(w, "<input type='%v'   name='%v'     id='%v'     value='%v' %v />",
+			fmt.Fprintf(w, "\t<input type='%v'   name='%v'     id='%v'     value='%v' %v />",
 				toInputType(tp, attrs), inpName, inpName, "ignored.json", structTagsToAttrs(attrs),
 			)
 		case "date", "time":
 			needSubmit = true
 			//              <input type="date" name="myDate" max="1989-10-29"  min="2001-01-02">
-			fmt.Fprintf(w, "<input type='%v'   name='%v'     id='%v'     value='%v' %v />",
+			fmt.Fprintf(w, "\t<input type='%v'   name='%v'     id='%v'     value='%v' %v />",
 				toInputType(tp, attrs), inpName, inpName, val, structTagsToAttrs(attrs),
 			)
 		case "textarea":
 			needSubmit = true
-			fmt.Fprintf(w, "<textarea name='%v' id='%v' %v />",
+			fmt.Fprintf(w, "\t<textarea name='%v' id='%v' %v />",
 				inpName, inpName, structTagsToAttrs(attrs),
 			)
 			fmt.Fprint(w, val)
 			fmt.Fprintf(w, "</textarea>")
 		case "select":
-			fmt.Fprintf(w, "<select name='%v' id='%v' %v />\n", inpName, inpName, structTagsToAttrs(attrs))
+			fmt.Fprintf(w, "\t<select name='%v' id='%v' %v />\n", inpName, inpName, structTagsToAttrs(attrs))
 			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(val.String()))
-			fmt.Fprint(w, "</select>")
+			fmt.Fprint(w, "\t</select>")
 		case "separator":
-			fmt.Fprint(w, "<div class='separator'></div>")
+			fmt.Fprint(w, "\t<div class='separator'></div>")
 		case "fieldset":
 			if fieldsetOpen {
-				fmt.Fprint(w, "</fieldset>")
+				fmt.Fprint(w, "</fieldset>\n")
 			}
 			fmt.Fprint(w, "<fieldset>")
 			fmt.Fprintf(w, "\t<legend>&nbsp;%v&nbsp;</legend>", frmLabel)
@@ -501,7 +507,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		default:
 			// plain vanilla input
 			needSubmit = true
-			fmt.Fprintf(w, "<input type='%v' name='%v' id='%v' value='%v' %v />", toInputType(tp, attrs), inpName, inpName, val, structTagsToAttrs(attrs))
+			fmt.Fprintf(w, "\t<input type='%v' name='%v' id='%v' value='%v' %v />", toInputType(tp, attrs), inpName, inpName, val, structTagsToAttrs(attrs))
 
 		}
 
@@ -513,23 +519,26 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		if toInputType(tp, attrs) != "separator" &&
 			toInputType(tp, attrs) != "fieldset" &&
 			structTag(attrs, "nobreak") == "" {
-			fmt.Fprintf(w, "<br>")
+			fmt.Fprintf(w, "\n")
+			fmt.Fprintf(w, s2f.verticalSpacer())
 		}
+
+		// close input with newline
 		fmt.Fprintf(w, "\n")
 
 	}
 
 	if fieldsetOpen {
-		fmt.Fprint(w, "</fieldset>")
+		fmt.Fprint(w, "</fieldset>\n")
 	}
 
 	if needSubmit || s2f.ForceSubmit {
 		// name should *not* be 'submit'
 		// avoiding error on this.form.submit()
 		// 'submit is not a function' stackoverflow.com/questions/833032/
-		fmt.Fprintf(w, "<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button><br>\n")
+		fmt.Fprintf(w, "\t<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button>\n%v\n", s2f.verticalSpacer())
 	} else {
-		fmt.Fprintf(w, "<input   type='hidden' name='btnSubmit' value='1'\n")
+		fmt.Fprintf(w, "\t<input   type='hidden' name='btnSubmit' value='1'\n")
 	}
 
 	fmt.Fprint(w, "</form>\n")
