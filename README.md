@@ -110,6 +110,8 @@ and to restrict the entry to a regular expression
 * Every field can have an attribute `title=...`  
 for mouse-over tooltips
 
+* Values of `suffix=...`, `title=...`, `pattern=...` need `&comma;` instead  of `,`
+
 * Every field  can have an attribute `accesskey='t'`  
 Accesskeys are not put into the label, but into the input tag
 

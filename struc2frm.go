@@ -201,7 +201,8 @@ func toInputType(t, attrs string) string {
 	return "text"
 }
 
-// retrieving some special 'form' struct tag from the struct
+// parsing the content of some special 'form' struct tag from the struct
+// i.e. "maxlength='42',size='28',suffix='optional'"
 func structTag(tags, key string) string {
 	tagss := strings.Split(tags, ",")
 	for _, a := range tagss {
@@ -209,6 +210,7 @@ func structTag(tags, key string) string {
 		if strings.HasPrefix(aLow, key) {
 			kv := strings.Split(a, "=")
 			if len(kv) == 2 {
+				// kv[1] = strings.ReplaceAll(kv[1], "&comma;", ",") // done at the end for the entire string
 				return strings.Trim(kv[1], "'")
 			}
 		}
@@ -216,7 +218,8 @@ func structTag(tags, key string) string {
 	return ""
 }
 
-// convert all 'form' struct tags to  html input attributes
+// convert the content of some special 'form' struct tag to html input attributes
+// i.e. "maxlength='42',size='28',suffix='optional'"
 func structTagsToAttrs(tags string) string {
 	tagss := strings.Split(tags, ",")
 	ret := ""
@@ -224,7 +227,7 @@ func structTagsToAttrs(tags string) string {
 		t = strings.TrimSpace(t)
 		tl := strings.ToLower(t) // tag lower
 		switch {
-		case strings.HasPrefix(tl, "subtype"): // string - [date,textarea,select]
+		case strings.HasPrefix(tl, "subtype="): // string - [date,textarea,select]
 			ret += " " + t
 		case strings.HasPrefix(tl, "size="): // visible width of input field
 			ret += " " + t
@@ -248,7 +251,7 @@ func structTagsToAttrs(tags string) string {
 			ret += " " + t
 		case strings.HasPrefix(tl, "onchange"): // file upload extension
 			ret += " " + "onchange='javascript:this.form.submit();'"
-		case strings.HasPrefix(tl, "accesskey"): // goes into input, not into label
+		case strings.HasPrefix(tl, "accesskey="): // goes into input, not into label
 			ret += " " + t
 		case strings.HasPrefix(tl, "title="): // mouse over tooltip - alt
 			ret += " " + t
@@ -258,6 +261,7 @@ func structTagsToAttrs(tags string) string {
 		}
 
 	}
+	// ret = strings.ReplaceAll(ret, "&comma;", ",") // done at the end for the entire string
 	return ret
 }
 
@@ -436,7 +440,11 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		inpName = strings.Replace(inpName, ",omitempty", "", -1)
 		frmLabel := labelize(inpName)
 
-		attrs := ifVal.Type().Field(i).Tag.Get("form")
+		attrs := ifVal.Type().Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28',suffix='optional'"
+
+		if strings.Contains(attrs, ", ") || strings.Contains(attrs, ", ") {
+			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fldName))
+		}
 
 		if attrs == "-" {
 			continue
@@ -544,7 +552,10 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 	fmt.Fprint(w, "</form>\n")
 	fmt.Fprint(w, "</div>\n")
 
-	return template.HTML(w.String())
+	// global replacements
+	ret := strings.ReplaceAll(w.String(), "&comma;", ",")
+
+	return template.HTML(ret)
 }
 
 // HTML takes a struct instance
