@@ -25,7 +25,7 @@ div.struc2frm  label {
     margin-top: 1px;
     text-align: right;
 }
-div.struc2frm  span.suffix {
+div.struc2frm  span.postlabel {
     display: inline-block;
     vertical-align: middle;
     font-size: 90%;

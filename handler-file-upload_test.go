@@ -58,7 +58,7 @@ func TestFileUpload(t *testing.T) {
 	<input type='text' name='text_field' id='text_field' value='posted-text'  maxlength='16' size='16' />
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='upload' style='' ><u>U</u>pload</label>
-	<input type='file'   name='upload'     id='upload'     value='ignored.json'  accesskey='u' accept='.txt' /><span class='suffix' >*.txt files</span>
+	<input type='file'   name='upload'     id='upload'     value='ignored.json'  accesskey='u' accept='.txt' /><span class='postlabel' >*.txt files</span>
 	<div style='height:0.6rem'>&nbsp;</div>
 	<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button>
 	<div style='height:0.6rem'>&nbsp;</div>

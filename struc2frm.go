@@ -136,14 +136,14 @@ func (s2f *s2FT) verticalSpacer() string {
 	return fmt.Sprintf("\t<div style='height:%3.1frem'>&nbsp;</div>", s2f.VerticalSpacer)
 }
 
-// AddOptions is used by the caller to prepare option key-values
+// AddOptions is used by the caller to prepare option key-labels
 // for the rendering into HTML()
-func (s2f *s2FT) AddOptions(name string, keys, values []string) {
+func (s2f *s2FT) AddOptions(name string, keys, labels []string) {
 	if s2f.SelectOptions == nil {
 		s2f.SelectOptions = map[string]options{}
 	}
 	for i, key := range keys {
-		s2f.SelectOptions[name] = append(s2f.SelectOptions[name], option{key, values[i]})
+		s2f.SelectOptions[name] = append(s2f.SelectOptions[name], option{key, labels[i]})
 	}
 }
 
@@ -521,7 +521,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 
 		sfx := structTag(attrs, "suffix")
 		if sfx != "" {
-			fmt.Fprintf(w, "<span class='suffix' >%s</span>", sfx)
+			fmt.Fprintf(w, "<span class='postlabel' >%s</span>", sfx)
 		}
 
 		if toInputType(tp, attrs) != "separator" &&

@@ -75,6 +75,8 @@ Fully functional example code in `directory systemtest`
 
 * Use `string` field with subtype `select`
 
+* Use `size=1` or `size=5` to determine the height
+
 * Use `AddOptions()` to fill input[select] elements
 
 * Use `onchange='true'`

@@ -39,7 +39,7 @@ func TestMainH(t *testing.T) {
 	<div style='height:0.6rem'>&nbsp;</div>
 	<div class='separator'></div>
 	<label for='hashkey' style='' >Hashkey</label>
-	<input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' /><span class='suffix' >salt, changes randomness</span>
+	<input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' /><span class='postlabel' >salt, changes randomness</span>
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='groups' style='' >Groups</label>
 	<input type='number' name='groups' id='groups' value='4'  min=1 max='100' maxlength='3' size='3' />
@@ -79,7 +79,7 @@ Rtoynbsonnos, Tars</textarea>
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='checkthis' style='' >Checkthis</label>
 	<input type='checkbox' name='checkthis' id='checkthis' value='true'   />
-	<input type='hidden' name='checkthis' value='false' /><span class='suffix' >without consequence</span>
+	<input type='hidden' name='checkthis' value='false' /><span class='postlabel' >without consequence</span>
 	<div style='height:0.6rem'>&nbsp;</div>
 </fieldset>
 	<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button>
