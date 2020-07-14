@@ -32,10 +32,12 @@ func TestMainH(t *testing.T) {
 	expected := `<h3>Entry form</h3>
 <form  method='POST' >
 	<label for='department' style='' >De<u>p</u>artment</label>
+	<div class='select-arrow'>
 	<select name='department' id='department'  subtype='select' accesskey='p' onchange='javascript:this.form.submit();' title='loading items' />
 		<option value='ub'          >UB</option>
 		<option value='fm'          >FM</option>
 	</select>
+	</div>
 	<div style='height:0.6rem'>&nbsp;</div>
 	<div class='separator'></div>
 	<label for='hashkey' style='' >Hashkey</label>

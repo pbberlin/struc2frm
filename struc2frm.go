@@ -500,9 +500,11 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 			fmt.Fprint(w, val)
 			fmt.Fprintf(w, "</textarea>")
 		case "select":
+			fmt.Fprint(w, "\t<div class='select-arrow'>\n")
 			fmt.Fprintf(w, "\t<select name='%v' id='%v' %v />\n", inpName, inpName, structTagsToAttrs(attrs))
 			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(val.String()))
-			fmt.Fprint(w, "\t</select>")
+			fmt.Fprint(w, "\t</select>\n")
+			fmt.Fprint(w, "\t</div>")
 		case "separator":
 			fmt.Fprint(w, "\t<div class='separator'></div>")
 		case "fieldset":
