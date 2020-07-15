@@ -632,7 +632,8 @@ func Decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error)
 	_, ok := r.Form["token"]
 	ln := len(map[string][]string(r.Form))
 	if ln < 1 || !ok {
-		return false, fmt.Errorf("request form empty or missing validation token")
+		// empty request form or missing validation token
+		return false, nil
 	}
 
 	err = New().ValidateFormToken(r.Form.Get("token"))
