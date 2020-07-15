@@ -62,45 +62,45 @@ type options []option
 
 // s2FT contains formatting options for converting a struct into a HTML form
 type s2FT struct {
-	Indent        int                // horizontal width of the labels column
-	IndentAddenum int                // for h3-headline and submit button, depends on CSS paddings and margins of div and input
-	ForceSubmit   bool               // show submit, despite having only auto-changing selects
-	ShowHeadline  bool               // headline derived from struct name
-	Method        string             // form method - default is POST
+	FormTag     bool   // include <form...> and </form>
+	Name        string // form name
+	Method      string // form method - default is POST
+	InstanceID  string // to distinguish several instances on same website
+	FormTimeout int    // hours until a form post is rejected
+	Salt        string
+
 	SelectOptions map[string]options // select inputs get their options from here
 	Errors        map[string]string  // validation errors by json name of input
 
-	InstanceID string // to distinguish several instances of a website
-
-	CSS            string  // general formatting - provided defaults can be replaced
+	Indent         int     // horizontal width of the labels column
+	IndentAddenum  int     // for h3-headline and submit button, depends on CSS paddings and margins of div and input
+	ForceSubmit    bool    // show submit, despite having only auto-changing selects
+	ShowHeadline   bool    // headline derived from struct name
 	VerticalSpacer float64 // in CSS REM
 
-	FormTimeout int // hours until a form post is rejected
-	Salt        string
+	CSS string // general formatting - provided defaults can be replaced
+
 }
 
 // New converter
 func New() *s2FT {
 	s2f := s2FT{
-		Indent:        0,           // non-zero values override the CSS
-		IndentAddenum: 2 * (4 + 4), // horizontal padding and margin
-
-		ForceSubmit:   false,
-		ShowHeadline:  false,
-		SelectOptions: map[string]options{},
+		FormTag:       true,
+		Name:          "frmMain",
 		Method:        "POST",
+		FormTimeout:   2,
+		SelectOptions: map[string]options{},
 
-		FormTimeout: 2,
+		Indent:         0,           // non-zero values override the CSS
+		IndentAddenum:  2 * (4 + 4), // horizontal padding and margin
+		ForceSubmit:    false,
+		ShowHeadline:   false,
+		VerticalSpacer: 0.6,
+
+		CSS: defaultCSS,
 	}
 	s2f.InstanceID = fmt.Sprint(time.Now().UnixNano())
 	s2f.InstanceID = s2f.InstanceID[len(s2f.InstanceID)-8:] // last 8 digits
-
-	// meta.embedded.block.CSS
-	// meta.embedded.block.javascript
-	// CSS
-
-	s2f.CSS = defaultCSS
-	s2f.VerticalSpacer = 0.6
 
 	// MAC address as salt
 	ifs, _ := net.Interfaces()
@@ -448,10 +448,10 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		}
 	}
 
-	if uploadPostForm {
-		fmt.Fprint(w, "<form      method='post'   enctype='multipart/form-data'>\n")
+	if uploadPostForm && s2f.FormTag {
+		fmt.Fprintf(w, "<form  name='%v'  method='post'   enctype='multipart/form-data'>\n", s2f.Name)
 	} else {
-		fmt.Fprintf(w, "<form  method='%v' >\n", s2f.Method)
+		fmt.Fprintf(w, "<form name='%v'  method='%v' >\n", s2f.Name, s2f.Method)
 	}
 
 	if errMsg, ok := s2f.Errors["global"]; ok {
@@ -590,7 +590,9 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		fmt.Fprintf(w, "\t<input   type='hidden' name='btnSubmit' value='1'\n")
 	}
 
-	fmt.Fprint(w, "</form>\n")
+	if s2f.FormTag {
+		fmt.Fprint(w, "</form>\n")
+	}
 	fmt.Fprint(w, "</div>\n")
 
 	// global replacements
