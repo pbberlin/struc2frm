@@ -60,5 +60,5 @@ func (s2f *s2FT) ValidateFormToken(arg string) error {
 	if arg == tok(1, s2f.Salt) {
 		return nil
 	}
-	return fmt.Errorf("form token was not issued within the last two hours. \nPlease re-login")
+	return fmt.Errorf("form token not issued within last two hours - reload")
 }

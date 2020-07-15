@@ -169,7 +169,8 @@ func (s2f *s2FT) AddOptions(nameJSON string, keys, labels []string) {
 	}
 }
 
-// AddError adds validations messages
+// AddError adds validations messages;
+// key 'global' writes msg on top of form.
 func (s2f *s2FT) AddError(nameJSON string, msg string) {
 	if s2f.Errors == nil {
 		s2f.Errors = map[string]string{}
@@ -621,21 +622,31 @@ func indentedDump(v interface{}) string {
 
 // Decode decodes the form into an instance of stuct
 // and checks the
-func Decode(r *http.Request, ptr2Struct interface{}) error {
+func Decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error) {
 
-	err := New().ValidateFormToken(r.PostForm.Get("token"))
+	err = r.ParseForm()
 	if err != nil {
-		return errors.Wrap(err, "Invalid request token")
+		return false, errors.Wrapf(err, "cannot parse form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+	}
+
+	_, ok := r.Form["token"]
+	ln := len(map[string][]string(r.Form))
+	if ln < 1 || !ok {
+		return false, fmt.Errorf("request form empty or missing validation token")
+	}
+
+	err = New().ValidateFormToken(r.Form.Get("token"))
+	if err != nil {
+		return false, errors.Wrap(err, "invalid form token")
 	}
 
 	dec := form.NewDecoder()
 	dec.SetTagName("json")
-	// ptr2Struct := &userDataFormT{Gender: ""}
 	err = dec.Decode(ptr2Struct, r.Form)
 	if err != nil {
-		return errors.Wrapf(err, "cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+		return false, errors.Wrapf(err, "cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
 	}
 
-	return nil
+	return true, nil
 
 }
