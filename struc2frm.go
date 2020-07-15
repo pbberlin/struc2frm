@@ -130,6 +130,8 @@ func New() *s2FT {
 func (s2f *s2FT) CloneForRequest() *s2FT {
 	clone := *s2f
 	clone.Errors = map[string]string{}
+	clone.InstanceID = fmt.Sprint(time.Now().UnixNano())
+	clone.InstanceID = clone.InstanceID[len(clone.InstanceID)-8:] // last 8 digits
 	return &clone
 }
 
@@ -501,6 +503,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		if uploadPostForm {
 			fmt.Fprintf(w, "<form  name='%v'  method='post'   enctype='multipart/form-data'>\n", s2f.Name)
 		} else {
+			// browser default encoding for post is "application/x-www-form-urlencoded"
 			fmt.Fprintf(w, "<form name='%v'  method='%v' >\n", s2f.Name, s2f.Method)
 		}
 	}
@@ -681,32 +684,50 @@ func indentedDump(v interface{}) string {
 	return string(byts)
 }
 
-// Decode decodes the form into an instance of stuct
-// and checks the
+// Decode decodes the form into an instance of struct
+// and checks the token against CSRF attacks (https://en.wikipedia.org/wiki/Cross-site_request_forgery)
 func Decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error) {
-
 	err = r.ParseForm()
 	if err != nil {
 		return false, errors.Wrapf(err, "cannot parse form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
 	}
+	return decode(r, ptr2Struct)
+}
 
-	_, ok := r.Form["token"]
-	ln := len(map[string][]string(r.Form))
-	if ln < 1 || !ok {
-		// empty request form or missing validation token
+// DecodeMultipartForm decodes the form into an instance of struct
+// and checks the token against CSRF attacks (https://en.wikipedia.org/wiki/Cross-site_request_forgery)
+func DecodeMultipartForm(r *http.Request, ptr2Struct interface{}) (populated bool, err error) {
+	err = ParseMultipartForm(r)
+	if err != nil {
+		return false, errors.Wrapf(err, "cannot parse multi part form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+	}
+	return decode(r, ptr2Struct)
+}
+
+func decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error) {
+
+	//
+	// check for empty requests
+	_, hasToken := r.Form["token"] // missing validation token
+	ln := len(r.Form)              // request form is empty
+	// sm := r.FormValue("btnSubmit") != ""  // submit btn would not be present in single dropdown forms with onclick
+	if ln > 0 && !hasToken {
+		log.Printf("warning: request params ignored, due to missing validation token")
+	}
+	if ln < 1 || !hasToken {
 		return false, nil
 	}
 
 	err = New().ValidateFormToken(r.Form.Get("token"))
 	if err != nil {
-		return false, errors.Wrap(err, "invalid form token")
+		return true, errors.Wrap(err, "invalid form token")
 	}
 
 	dec := form.NewDecoder()
 	dec.SetTagName("json")
 	err = dec.Decode(ptr2Struct, r.Form)
 	if err != nil {
-		return false, errors.Wrapf(err, "cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+		return true, errors.Wrapf(err, "cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
 	}
 
 	return true, nil

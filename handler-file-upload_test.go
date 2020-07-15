@@ -33,13 +33,21 @@ func TestFileUpload(t *testing.T) {
 	}
 	io.Copy(part, file)
 
+	// adding normal fields...
 	mpWriter.WriteField("text_field", "posted-text")
+	mpWriter.WriteField("token", New().FormToken())
 	mpWriter.Close()
 
-	req, err := http.NewRequest("POST", "/file-upload", uploadBody) // <-- URL-encoded payload
+	req, err := http.NewRequest("POST", "/file-upload", uploadBody) // <-- encoded payload
 	if err != nil {
 		t.Fatalf("could not create request: %v", err)
 	}
+	/*
+		Content-Type is *not*
+		   application/x-www-form-urlencoded
+		but
+		   multipart/form-data; boundary=...
+	*/
 	req.Header.Add("Content-Type", mpWriter.FormDataContentType())
 
 	w := httptest.NewRecorder() //  satisfying http.ResponseWriter for recording
@@ -77,7 +85,7 @@ File content is --file content 123-- <br>`
 		ioutil.WriteFile("tmp-test-fileupload1_got.html", []byte(body), 0777)
 	}
 	if !strings.Contains(body, expected2) {
-		t.Errorf("handler returned unexpected body")
+		t.Errorf("handler did not get the uploaded file name or data right")
 		ioutil.WriteFile("tmp-test-fileupload2_want.html", []byte(expected2), 0777)
 		ioutil.WriteFile("tmp-test-fileupload2_got.html", []byte(body), 0777)
 	}

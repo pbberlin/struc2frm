@@ -3,13 +3,12 @@ package struc2frm
 import (
 	"crypto"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/go-playground/form"
 )
 
 var itemGroups = map[string][]string{
@@ -32,16 +31,8 @@ var itemGroups = map[string][]string{
 
 // FormH is an example http handler func
 func FormH(w http.ResponseWriter, req *http.Request) {
+
 	w.Header().Add("Content-Type", "text/html")
-
-	err := req.ParseForm()
-	if err != nil {
-		fmt.Fprintf(w, "Cannot parse form: %v<br>\n", err)
-		return
-	}
-
-	// bts2, _ := json.MarshalIndent(req.Form, " ", "\t")
-	// fmt.Fprintf(w, "<br><br>Form was: <pre>%v</pre> <br>\n", string(bts2))
 
 	type entryForm struct {
 		Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',title='loading items'"`
@@ -71,16 +62,15 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	// init values
 	frm := entryForm{
 		HashKey: time.Now().Format("2006-01-02"),
-		Groups:  4,
+		Groups:  2,
 		Date:    time.Now().Format("2006-01-02"),
 		Time:    time.Now().Format("15:04"),
 	}
 
-	dec := form.NewDecoder()
-	dec.SetTagName("json") // recognizes and ignores ,omitempty
-	err = dec.Decode(&frm, req.Form)
-	if err != nil {
-		fmt.Fprintf(w, "Could not decode form: %v <br>\n", err)
+	populated, err := Decode(req, &frm)
+	if populated && err != nil {
+		s2f.AddError("global", fmt.Sprintf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(req.Form)))
+		log.Printf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(req.Form))
 	}
 
 	dept := req.FormValue("department")
@@ -89,13 +79,11 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	}
 	frm.Items = strings.Join(itemGroups[dept], "\n")
 
-	// fmt.Fprintf(w, "dept is %v<br>", dept)
-
 	//
 	// reshuffling...
 	bins := [][]string{}
 	binsF := "" // formatted as html
-	if req.FormValue("btnSubmit") != "" {
+	if populated {
 
 		salt1 := req.FormValue("hashkey")
 		salt2 := "dudoedeldu"
@@ -139,8 +127,6 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 		}
 
 	}
-
-	// log.Printf("%v", bins)
 
 	fmt.Fprintf(
 		w,
