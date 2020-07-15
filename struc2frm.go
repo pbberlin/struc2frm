@@ -109,6 +109,7 @@ func New() *s2FT {
 		Salt:        addressMAC,
 
 		SelectOptions: map[string]options{},
+		Errors:        map[string]string{},
 
 		Indent:         0,           // non-zero values override the CSS
 		IndentAddenum:  2 * (4 + 4), // horizontal padding and margin
@@ -122,6 +123,14 @@ func New() *s2FT {
 	s2f.InstanceID = s2f.InstanceID[len(s2f.InstanceID)-8:] // last 8 digits
 
 	return &s2f
+}
+
+// CloneForRequest takes a package instance of s2FT
+// and clones it for safe usage in parallel http requests
+func (s2f *s2FT) CloneForRequest() *s2FT {
+	clone := *s2f
+	clone.Errors = map[string]string{}
+	return &clone
 }
 
 var defaultS2F = New()
