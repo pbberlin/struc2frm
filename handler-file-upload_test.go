@@ -2,6 +2,7 @@ package struc2frm
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -14,8 +15,6 @@ import (
 )
 
 func TestFileUpload(t *testing.T) {
-
-	CfgLoad()
 
 	fileName := "upload-file.txt"
 	uploadBody := &bytes.Buffer{}
@@ -53,8 +52,9 @@ func TestFileUpload(t *testing.T) {
 	}
 
 	// Check the response body
-	expected1 := `<form      method='post'   enctype='multipart/form-data'>
-	<label for='text_field' style='' >Text  field</label>
+	expected1 := `<form  name='frmMain'  method='post'   enctype='multipart/form-data'>
+	<input name='token'    type='hidden'   value='%v' />
+	<label for='text_field' style='' >Text field</label>
 	<input type='text' name='text_field' id='text_field' value='posted-text'  maxlength='16' size='16' />
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='upload' style='' ><u>U</u>pload</label>
@@ -63,6 +63,8 @@ func TestFileUpload(t *testing.T) {
 	<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button>
 	<div style='height:0.6rem'>&nbsp;</div>
 </form>`
+
+	expected1 = fmt.Sprintf(expected1, New().FormToken())
 
 	expected2 := `16 bytes read from excel file -upload-file.txt- <br>
 File content is --file content 123-- <br>`

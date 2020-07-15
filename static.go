@@ -191,5 +191,7 @@ div.struc2frm select[name="department"] {
     background-color: darkkhaki;
 }
 
-
+.error-block {
+    color: var(--clr-err);
+}
 `

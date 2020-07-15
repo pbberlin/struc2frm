@@ -5,11 +5,13 @@ package struc2frm
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"path"
 	"reflect"
@@ -17,6 +19,9 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/go-playground/form"
+	"github.com/pkg/errors"
 )
 
 var defaultHTML = ""
@@ -57,39 +62,56 @@ type options []option
 
 // s2FT contains formatting options for converting a struct into a HTML form
 type s2FT struct {
-	Indent        int                // horizontal width of the labels column
-	IndentAddenum int                // for h3-headline and submit button, depends on CSS paddings and margins of div and input
-	ForceSubmit   bool               // show submit, despite having only auto-changing selects
-	ShowHeadline  bool               // headline derived from struct name
-	Method        string             // form method - default is POST
+	FormTag     bool   // include <form...> and </form>
+	Name        string // form name
+	Method      string // form method - default is POST
+	InstanceID  string // to distinguish several instances on same website
+	FormTimeout int    // hours until a form post is rejected
+	Salt        string
+
 	SelectOptions map[string]options // select inputs get their options from here
+	Errors        map[string]string  // validation errors by json name of input
 
-	InstanceID string // to distinguish several instances of a website
-
-	CSS            string  // general formatting - provided defaults can be replaced
+	Indent         int     // horizontal width of the labels column
+	IndentAddenum  int     // for h3-headline and submit button, depends on CSS paddings and margins of div and input
+	ForceSubmit    bool    // show submit, despite having only auto-changing selects
+	ShowHeadline   bool    // headline derived from struct name
 	VerticalSpacer float64 // in CSS REM
+
+	CSS string // general formatting - provided defaults can be replaced
+
 }
 
 // New converter
 func New() *s2FT {
 	s2f := s2FT{
-		Indent:        0,           // non-zero values override the CSS
-		IndentAddenum: 2 * (4 + 4), // horizontal padding and margin
-
-		ForceSubmit:   false,
-		ShowHeadline:  false,
-		SelectOptions: map[string]options{},
+		FormTag:       true,
+		Name:          "frmMain",
 		Method:        "POST",
+		FormTimeout:   2,
+		SelectOptions: map[string]options{},
+
+		Indent:         0,           // non-zero values override the CSS
+		IndentAddenum:  2 * (4 + 4), // horizontal padding and margin
+		ForceSubmit:    false,
+		ShowHeadline:   false,
+		VerticalSpacer: 0.6,
+
+		CSS: defaultCSS,
 	}
 	s2f.InstanceID = fmt.Sprint(time.Now().UnixNano())
 	s2f.InstanceID = s2f.InstanceID[len(s2f.InstanceID)-8:] // last 8 digits
 
-	// meta.embedded.block.CSS
-	// meta.embedded.block.javascript
-	// CSS
-
-	s2f.CSS = defaultCSS
-	s2f.VerticalSpacer = 0.6
+	// MAC address as salt
+	ifs, _ := net.Interfaces()
+	for _, v := range ifs {
+		h := v.HardwareAddr.String()
+		if len(h) == 0 {
+			continue
+		}
+		s2f.Salt = h
+		break
+	}
 
 	return &s2f
 }
@@ -138,13 +160,22 @@ func (s2f *s2FT) verticalSpacer() string {
 
 // AddOptions is used by the caller to prepare option key-labels
 // for the rendering into HTML()
-func (s2f *s2FT) AddOptions(name string, keys, labels []string) {
+func (s2f *s2FT) AddOptions(nameJSON string, keys, labels []string) {
 	if s2f.SelectOptions == nil {
 		s2f.SelectOptions = map[string]options{}
 	}
 	for i, key := range keys {
-		s2f.SelectOptions[name] = append(s2f.SelectOptions[name], option{key, labels[i]})
+		s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{key, labels[i]})
 	}
+}
+
+// AddError adds validations messages;
+// key 'global' writes msg on top of form.
+func (s2f *s2FT) AddError(nameJSON string, msg string) {
+	if s2f.Errors == nil {
+		s2f.Errors = map[string]string{}
+	}
+	s2f.Errors[nameJSON] = msg
 }
 
 // DefaultOptionKey gives the value to be selected on form init
@@ -297,7 +328,7 @@ func accessKeyify(s, attrs string) string {
 // bondFund  => Bond fund
 // bondFUND  => Bond fund
 //
-// notice rare edge case: BONDFund would be converted to 'BONDF und'
+// edge case: BONDFund would be converted to 'Bondfund'
 func labelize(s string) string {
 	rs := make([]rune, 0, len(s))
 	previousUpper := false
@@ -310,12 +341,10 @@ func labelize(s string) string {
 				char = ' '
 			}
 			if unicode.ToUpper(char) == char {
-				if !previousUpper {
+				if !previousUpper && char != ' ' {
 					rs = append(rs, ' ')
-					rs = append(rs, unicode.ToLower(char))
-				} else {
-					rs = append(rs, unicode.ToLower(char))
 				}
+				rs = append(rs, unicode.ToLower(char))
 				previousUpper = true
 			} else {
 				rs = append(rs, char)
@@ -419,11 +448,19 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		}
 	}
 
-	if uploadPostForm {
-		fmt.Fprint(w, "<form      method='post'   enctype='multipart/form-data'>\n")
-	} else {
-		fmt.Fprintf(w, "<form  method='%v' >\n", s2f.Method)
+	if s2f.FormTag {
+		if uploadPostForm {
+			fmt.Fprintf(w, "<form  name='%v'  method='post'   enctype='multipart/form-data'>\n", s2f.Name)
+		} else {
+			fmt.Fprintf(w, "<form name='%v'  method='%v' >\n", s2f.Name, s2f.Method)
+		}
 	}
+
+	if errMsg, ok := s2f.Errors["global"]; ok {
+		fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
+	}
+
+	fmt.Fprintf(w, "\t<input name='token'    type='hidden'   value='%v' />\n", s2f.FormToken())
 
 	fieldsetOpen := false
 
@@ -454,6 +491,10 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		tp := ifVal.Field(i).Type().Name() // primitive type name: string, int
 		if ifVal.Type().Field(i).Type.Kind() == reflect.Slice {
 			tp = "[]" + ifVal.Type().Field(i).Type.Elem().Name() // []byte => []uint8
+		}
+
+		if errMsg, ok := s2f.Errors[inpName]; ok {
+			fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 		}
 
 		// label
@@ -551,8 +592,10 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		fmt.Fprintf(w, "\t<input   type='hidden' name='btnSubmit' value='1'\n")
 	}
 
-	fmt.Fprint(w, "</form>\n")
-	fmt.Fprint(w, "</div>\n")
+	if s2f.FormTag {
+		fmt.Fprint(w, "</form>\n")
+	}
+	fmt.Fprint(w, "</div><!-- </div class='struc2frm'... -->\n") //
 
 	// global replacements
 	ret := strings.ReplaceAll(w.String(), "&comma;", ",")
@@ -565,4 +608,50 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 // to turns it into an HTML form.
 func HTML(intf interface{}) template.HTML {
 	return defaultS2F.HTML(intf)
+}
+
+func indentedDump(v interface{}) string {
+
+	firstColLeftMostPrefix := " "
+	byts, err := json.MarshalIndent(v, firstColLeftMostPrefix, "\t")
+	if err != nil {
+		s := fmt.Sprintf("error indent: %v\n", err)
+		return s
+	}
+	// byts = bytes.Replace(byts, []byte(`\u003c`), []byte("<"), -1)
+	// byts = bytes.Replace(byts, []byte(`\u003e`), []byte(">"), -1)
+	// byts = bytes.Replace(byts, []byte(`\n`), []byte("\n"), -1)
+	return string(byts)
+}
+
+// Decode decodes the form into an instance of stuct
+// and checks the
+func Decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error) {
+
+	err = r.ParseForm()
+	if err != nil {
+		return false, errors.Wrapf(err, "cannot parse form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+	}
+
+	_, ok := r.Form["token"]
+	ln := len(map[string][]string(r.Form))
+	if ln < 1 || !ok {
+		// empty request form or missing validation token
+		return false, nil
+	}
+
+	err = New().ValidateFormToken(r.Form.Get("token"))
+	if err != nil {
+		return false, errors.Wrap(err, "invalid form token")
+	}
+
+	dec := form.NewDecoder()
+	dec.SetTagName("json")
+	err = dec.Decode(ptr2Struct, r.Form)
+	if err != nil {
+		return false, errors.Wrapf(err, "cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+	}
+
+	return true, nil
+
 }
