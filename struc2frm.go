@@ -448,10 +448,12 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 		}
 	}
 
-	if uploadPostForm && s2f.FormTag {
-		fmt.Fprintf(w, "<form  name='%v'  method='post'   enctype='multipart/form-data'>\n", s2f.Name)
-	} else {
-		fmt.Fprintf(w, "<form name='%v'  method='%v' >\n", s2f.Name, s2f.Method)
+	if s2f.FormTag {
+		if uploadPostForm {
+			fmt.Fprintf(w, "<form  name='%v'  method='post'   enctype='multipart/form-data'>\n", s2f.Name)
+		} else {
+			fmt.Fprintf(w, "<form name='%v'  method='%v' >\n", s2f.Name, s2f.Method)
+		}
 	}
 
 	if errMsg, ok := s2f.Errors["global"]; ok {
