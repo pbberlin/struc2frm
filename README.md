@@ -107,12 +107,17 @@ and to restrict the entry to a regular expression
 
 ## General
 
-* Every field can have an attribute `suffix=...`
+* Every field can have an attribute `label=...`,  
+appearing before the input element,  
+if not specified, json:"[name]..." is labelized and used
+
+* Every field can have an attribute `suffix=...`,  
+appearing after the input element
 
 * Every field can have an attribute `title=...`  
 for mouse-over tooltips
 
-* Values of `suffix=...`, `title=...`, `pattern=...` need `&comma;` instead  of `,`
+* Values inside of `label='...'`, `suffix='...'`, `title='...'`, `pattern='...'` need `&comma;` instead  of `,`
 
 * Every field  can have an attribute `accesskey='t'`  
 Accesskeys are not put into the label, but into the input tag

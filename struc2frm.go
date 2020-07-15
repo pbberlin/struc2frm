@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"path"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -82,13 +83,31 @@ type s2FT struct {
 
 }
 
+var addressMAC = ""
+
+func init() {
+	// MAC address as salt
+	// run only once at init() time to save time
+	ifs, _ := net.Interfaces()
+	for _, v := range ifs {
+		h := v.HardwareAddr.String()
+		if len(h) == 0 {
+			continue
+		}
+		addressMAC = h
+		break
+	}
+}
+
 // New converter
 func New() *s2FT {
 	s2f := s2FT{
-		FormTag:       true,
-		Name:          "frmMain",
-		Method:        "POST",
-		FormTimeout:   2,
+		FormTag:     true,
+		Name:        "frmMain",
+		Method:      "POST",
+		FormTimeout: 2,
+		Salt:        addressMAC,
+
 		SelectOptions: map[string]options{},
 
 		Indent:         0,           // non-zero values override the CSS
@@ -102,21 +121,41 @@ func New() *s2FT {
 	s2f.InstanceID = fmt.Sprint(time.Now().UnixNano())
 	s2f.InstanceID = s2f.InstanceID[len(s2f.InstanceID)-8:] // last 8 digits
 
-	// MAC address as salt
-	ifs, _ := net.Interfaces()
-	for _, v := range ifs {
-		h := v.HardwareAddr.String()
-		if len(h) == 0 {
-			continue
-		}
-		s2f.Salt = h
-		break
-	}
-
 	return &s2f
 }
 
 var defaultS2F = New()
+
+/*
+	.+      any chars
+	'       boundary one
+	(.+?)   any chars, ? means not greedy
+	'       boundary two
+	.+      any chars
+
+	this leads nowhere, since opening and closing boundary are the same
+*/
+var comma = regexp.MustCompile(`.*'(.*,.*?)'.*`)
+
+func commaInsideQuotesBAD(s string) bool {
+	matches := comma.FindAllStringSubmatch(s, -1) // -1 returns all matches
+	log.Printf("%v matches for \n\t%v\n\t%+v\n\n", len(matches), s, matches)
+	return comma.MatchString(s)
+}
+
+func commaInsideQuotes(s string) bool {
+	parts := strings.Split(s, "'")
+	for idx, pt := range parts {
+		if idx%2 == 0 {
+			continue
+		}
+		// log.Printf("checking part %v - %v", idx, pt)
+		if strings.Contains(pt, ",") {
+			return true
+		}
+	}
+	return false
+}
 
 func (s2f *s2FT) RenderCSS(w io.Writer) {
 
@@ -175,7 +214,10 @@ func (s2f *s2FT) AddError(nameJSON string, msg string) {
 	if s2f.Errors == nil {
 		s2f.Errors = map[string]string{}
 	}
-	s2f.Errors[nameJSON] = msg
+	if _, ok := s2f.Errors[nameJSON]; ok {
+		s2f.Errors[nameJSON] += ". \n"
+	}
+	s2f.Errors[nameJSON] += msg
 }
 
 // DefaultOptionKey gives the value to be selected on form init
@@ -241,7 +283,6 @@ func structTag(tags, key string) string {
 		if strings.HasPrefix(aLow, key) {
 			kv := strings.Split(a, "=")
 			if len(kv) == 2 {
-				// kv[1] = strings.ReplaceAll(kv[1], "&comma;", ",") // done at the end for the entire string
 				return strings.Trim(kv[1], "'")
 			}
 		}
@@ -292,7 +333,6 @@ func structTagsToAttrs(tags string) string {
 		}
 
 	}
-	// ret = strings.ReplaceAll(ret, "&comma;", ",") // done at the end for the entire string
 	return ret
 }
 
@@ -479,8 +519,16 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 
 		attrs := ifVal.Type().Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28',suffix='optional'"
 
+		if structTag(attrs, "label") != "" {
+			frmLabel = structTag(attrs, "label")
+		}
+
 		if strings.Contains(attrs, ", ") || strings.Contains(attrs, ", ") {
 			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fldName))
+		}
+
+		if commaInsideQuotes(attrs) {
+			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fldName))
 		}
 
 		if attrs == "-" {
@@ -497,7 +545,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 			fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 		}
 
-		// label
+		// label tag for input tag
 		specialVAlign := ""
 		if toInputType(tp, attrs) == "textarea" {
 			specialVAlign = "vertical-align: top;"

@@ -54,7 +54,7 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 		Time        string `json:"time,omitempty"          form:"subtype='time',maxlength='12',size='12'"`
 		Group02     string `json:"group02,omitempty"       form:"subtype='fieldset'"`
 		// stackoverflow.com/questions/399078 - inside character classes escape ^-]\
-		DateLayout string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04'"` // 2006-01-02 15:04
+		DateLayout string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
 		CheckThis  bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
 
 		// Requires distinct way of form parsing
