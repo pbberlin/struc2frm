@@ -12,8 +12,6 @@ import (
 
 func TestMainH(t *testing.T) {
 
-	CfgLoad()
-
 	req, err := http.NewRequest("GET", "/", nil) // create request without query params
 	if err != nil {
 		t.Fatal(err)
@@ -31,6 +29,7 @@ func TestMainH(t *testing.T) {
 	// Check the response body
 	expected := `<h3>Entry form</h3>
 <form  method='POST' >
+	<input name='token'    type='hidden'   value='%v' />
 	<label for='department' style='' >De<u>p</u>artment</label>
 	<div class='select-arrow'>
 	<select name='department' id='department'  subtype='select' accesskey='p' onchange='javascript:this.form.submit();' title='loading items' />
@@ -48,24 +47,10 @@ func TestMainH(t *testing.T) {
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='items' style='vertical-align: top;' >Items</label>
 	<textarea name='items' id='items'  subtype='textarea' cols='22' rows='12' maxlength='4000' title='add times - delimited by newline (enter)' />Brutsyum, Zusoh
-Bysshelz, Cusle
-Blorro, Kurtyun
-Behno, Socht
-Bakrmunn, Prot
-Breslo, Asosoru
-Cuppol, Klutyldo
 Dovosuke, Udsyuke
-Datt, Vosoku
 Fyrkros, Loekyo
 Gyaffsydu, Loekusde
-Huvlyk, Unnyku
-Hoynom, Fsyodsykr
 Heyos, Ysyr
-Ksyogos, Temmy
-Ladwyg, Chsyrtephos
-Nacel, Kususynu
-Nevos, Jartar
-Rtugo, Arbusbu
 Rtoynbsonnos, Tars</textarea>
 	<div style='height:0.6rem'>&nbsp;</div>
 <fieldset>	<legend>&nbsp;Group 01&nbsp;</legend>
@@ -76,7 +61,7 @@ Rtoynbsonnos, Tars</textarea>
 	<div style='height:0.6rem'>&nbsp;</div>
 </fieldset>
 <fieldset>	<legend>&nbsp;Group 02&nbsp;</legend>
-	<label for='date_layout' style='' >Da<u>t</u>e  layout</label>
+	<label for='date_layout' style='' >Da<u>t</u>e layout</label>
 	<input type='text' name='date_layout' id='date_layout' value=''  accesskey='t' maxlength='16' size='16' pattern='[0-9\.\-/]{2,10}' placeholder='2006/01/02 15:04' />
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='checkthis' style='' >Checkthis</label>
@@ -89,7 +74,13 @@ Rtoynbsonnos, Tars</textarea>
 </form>
 </div>`
 
-	expected = fmt.Sprintf(expected, time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02"), time.Now().Format("15:04"))
+	expected = fmt.Sprintf(
+		expected,
+		New().FormToken(),
+		time.Now().Format("2006-01-02"),
+		time.Now().Format("2006-01-02"),
+		time.Now().Format("15:04"),
+	)
 	body := w.Body.String()
 	if !strings.Contains(body, expected) {
 		// t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)

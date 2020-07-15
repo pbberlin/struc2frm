@@ -12,6 +12,24 @@ import (
 	"github.com/go-playground/form"
 )
 
+var itemGroups = map[string][]string{
+	"ub": {
+		"Brutsyum, Zusoh",
+		"Dovosuke, Udsyuke",
+		"Fyrkros, Loekyo",
+		"Gyaffsydu, Loekusde",
+		"Heyos, Ysyr",
+		"Rtoynbsonnos, Tars",
+	},
+	"fm": {
+		"Bsackbuaos, Punk",
+		"Bachos-Keonon, Tasd",
+		"Hiroso, Meivynu",
+		"Rachydt, Racho",
+		"Ruchsiedos, Misea",
+	},
+}
+
 // FormH is an example http handler func
 func FormH(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", "text/html")
@@ -69,7 +87,7 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	if dept == "" {
 		dept = s2f.DefaultOptionKey("department")
 	}
-	frm.Items = strings.Join(CfgGet().ItemGroups[dept], "\n")
+	frm.Items = strings.Join(itemGroups[dept], "\n")
 
 	// fmt.Fprintf(w, "dept is %v<br>", dept)
 

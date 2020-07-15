@@ -38,7 +38,7 @@ const staticTplMainHTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-const staticDefaultCSS  = `
+const staticDefaultCSS = `
 div.struc2frm {
     padding: 4px;
     margin:  4px;
@@ -191,5 +191,7 @@ div.struc2frm select[name="department"] {
     background-color: darkkhaki;
 }
 
-
+.error-block {
+    color: var(--clr-err);
+}
 `
