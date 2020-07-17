@@ -17,8 +17,7 @@ func main() {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
 	log.SetFlags(log.Lshortfile | log.Ltime)
 
-	struc2frm.CfgLoad()
-	pfx := struc2frm.CfgGet().URLPathPrefix
+	pfx := "struc2frm"
 
 	mux1 := http.NewServeMux() // base router
 
@@ -52,7 +51,7 @@ func main() {
 		mux1.HandleFunc("/"+pfx+"/favicon.ico/", serveIcon)
 	}
 
-	IPPort := fmt.Sprintf("%v:%v", struc2frm.CfgGet().BindHost, struc2frm.CfgGet().BindSocket)
+	IPPort := fmt.Sprintf("%v:%v", "localhost", "8085")
 	log.Printf("starting http server at %v ... ", IPPort)
 	log.Printf("==========================")
 	log.Printf("  ")
