@@ -5,7 +5,12 @@
 
 ## Golang Struct to HTML Form
 
-[![Travis Build](https://travis-ci.org/pbberlin/struc2frm.svg?branch=master)](https://travis-ci.org/pbberlin/struc2frm)        [![codecov](https://codecov.io/gh/pbberlin/struc2frm/branch/master/graph/badge.svg)](https://codecov.io/gh/pbberlin/struc2frm)
+[![GoDoc](http://godoc.org/github.com/pbberlin/struc2frm?status.svg)](https://godoc.org/github.com/pbberlin/struc2frm) 
+[![Travis Build](https://travis-ci.org/pbberlin/struc2frm.svg?branch=master)](https://travis-ci.org/pbberlin/struc2frm) 
+[![codecov](https://codecov.io/gh/pbberlin/struc2frm/branch/master/graph/badge.svg)](https://codecov.io/gh/pbberlin/struc2frm) 
+
+
+
 
 * Package struc2frm converts or transforms a  
 golang `struct type` into an `HTML input form`.
@@ -94,6 +99,12 @@ Attribute `size` determines height for select/dropdown elements.
 * Use `string` field with subtype `time`
 
 * Use `bool` to create a checkbox
+
+### Input settings for mobile phones
+
+* `inputmode="numeric"` opens the numbers keyboard on mobile phones
+
+* `autocapitalize=off` switches off first letter upper casing
 
 ### Separator and fieldset
 
@@ -258,9 +269,8 @@ mostly to have syntax highlighting while editing it.
 
 ## TODO
 
-* Add support for mobile keyboard default settings  
-for instance `inputmode="numeric"` opens the numbers keyboard on mobile phones;  
-`autocapitalize=off` switches off first letter upper casing.
+* Support for focus() first input element and  
+focus() on first input element having an error
 
 * Low Prio: Add field type `option group`  
 meanwhile use `select / dropdown`

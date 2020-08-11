@@ -226,7 +226,7 @@ func (s2f *s2FT) AddError(nameJSON string, msg string) {
 		s2f.Errors = map[string]string{}
 	}
 	if _, ok := s2f.Errors[nameJSON]; ok {
-		s2f.Errors[nameJSON] += ". \n"
+		s2f.Errors[nameJSON] += "<br>\n"
 	}
 	s2f.Errors[nameJSON] += msg
 }
@@ -337,6 +337,10 @@ func structTagsToAttrs(tags string) string {
 		case strings.HasPrefix(tl, "accesskey="): // goes into input, not into label
 			ret += " " + t
 		case strings.HasPrefix(tl, "title="): // mouse over tooltip - alt
+			ret += " " + t
+		case strings.HasPrefix(tl, "autocapitalize="): // 'off' prevents upper case for first word on mobile phones
+			ret += " " + t
+		case strings.HasPrefix(tl, "inputmode="): // 'numeric' shows only numbers keysboard on mobile phones
 			ret += " " + t
 		default:
 			// suffix    is not converted into an attribute
@@ -553,7 +557,8 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 			tp = "[]" + ifVal.Type().Field(i).Type.Elem().Name() // []byte => []uint8
 		}
 
-		if errMsg, ok := s2f.Errors[inpName]; ok {
+		errMsg, hasError := s2f.Errors[inpName]
+		if hasError {
 			fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 		}
 
