@@ -81,6 +81,8 @@ type s2FT struct {
 
 	CSS string // general formatting - provided defaults can be replaced
 
+	// Card View options
+	SkipEmpty bool // Fields with value "" are not rendered
 }
 
 var addressMAC = ""
@@ -467,35 +469,36 @@ func ExtractUploadedFile(r *http.Request, names ...string) (bts []byte, fname st
 
 }
 
-// HTML takes a struct instance
-// and turns it into an HTML form.
-func (s2f *s2FT) HTML(intf interface{}) template.HTML {
+// Form takes a struct instance
+// and turns it into an Form form.
+func (s2f *s2FT) Form(intf interface{}) template.HTML {
 
-	needSubmit := false // only select with onchange:submit() ?
+	v := reflect.ValueOf(intf) // ifVal
+	typeOfS := v.Type()
+	// v = ifVal.Elem() // de reference
 
-	ifVal := reflect.ValueOf(intf)
-	// ifVal = ifVal.Elem() // de reference
-	if ifVal.Kind().String() != "struct" {
-		return template.HTML(fmt.Sprintf("struct2form.HTML() - first arg must be struct - is %v", ifVal.Kind()))
+	if v.Kind().String() != "struct" {
+		return template.HTML(fmt.Sprintf("struct2form.HTML() - arg1 must be struct - is %v", v.Kind()))
 	}
 
 	w := &bytes.Buffer{}
 
+	needSubmit := false // only select with onchange:submit() ?
 	s2f.RenderCSS(w)
 
 	// one class selector for general - one for specific instance
 	fmt.Fprintf(w, "<div class='struc2frm struc2frm-%v'>\n", s2f.InstanceID)
 
 	if s2f.ShowHeadline {
-		fmt.Fprintf(w, "<h3>%v</h3>\n", labelize(ifVal.Type().Name()))
+		fmt.Fprintf(w, "<h3>%v</h3>\n", labelize(typeOfS.Name()))
 	}
 
 	//
 	uploadPostForm := false
-	for i := 0; i < ifVal.NumField(); i++ {
-		tp := ifVal.Field(i).Type().Name() // primitive type name: string, int
-		if ifVal.Type().Field(i).Type.Kind() == reflect.Slice {
-			tp = "[]" + ifVal.Type().Field(i).Type.Elem().Name()
+	for i := 0; i < v.NumField(); i++ {
+		tp := v.Field(i).Type().Name() // primitive type name: string, int
+		if typeOfS.Field(i).Type.Kind() == reflect.Slice {
+			tp = "[]" + typeOfS.Field(i).Type.Elem().Name()
 		}
 		if toInputType(tp, "") == "file" {
 			uploadPostForm = true
@@ -521,40 +524,40 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 	fieldsetOpen := false
 
 	// Render fields
-	for i := 0; i < ifVal.NumField(); i++ {
+	for i := 0; i < v.NumField(); i++ {
 
-		fldName := ifVal.Type().Field(i).Name // i.e. Name, Birthdate
+		fn := typeOfS.Field(i).Name // i.e. Name, Birthdate
 
-		if fldName[0:1] != strings.ToUpper(fldName[0:1]) {
+		if fn[0:1] != strings.ToUpper(fn[0:1]) {
 			continue // skip unexported
 		}
 
-		inpName := ifVal.Type().Field(i).Tag.Get("json") // i.e. date_layout
+		inpName := typeOfS.Field(i).Tag.Get("json") // i.e. date_layout
 		inpName = strings.Replace(inpName, ",omitempty", "", -1)
 		frmLabel := labelize(inpName)
 
-		attrs := ifVal.Type().Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28',suffix='optional'"
+		attrs := typeOfS.Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28',suffix='optional'"
 
 		if structTag(attrs, "label") != "" {
 			frmLabel = structTag(attrs, "label")
 		}
 
 		if strings.Contains(attrs, ", ") || strings.Contains(attrs, ", ") {
-			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fldName))
+			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fn))
 		}
 
 		if commaInsideQuotes(attrs) {
-			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fldName))
+			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fn))
 		}
 
 		if attrs == "-" {
 			continue
 		}
 
-		val := ifVal.Field(i)
-		tp := ifVal.Field(i).Type().Name() // primitive type name: string, int
-		if ifVal.Type().Field(i).Type.Kind() == reflect.Slice {
-			tp = "[]" + ifVal.Type().Field(i).Type.Elem().Name() // []byte => []uint8
+		val := v.Field(i)
+		tp := v.Field(i).Type().Name() // primitive type name: string, int
+		if typeOfS.Field(i).Type.Kind() == reflect.Slice {
+			tp = "[]" + v.Type().Field(i).Type.Elem().Name() // []byte => []uint8
 		}
 
 		errMsg, hasError := s2f.Errors[inpName]
@@ -660,7 +663,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 	if s2f.FormTag {
 		fmt.Fprint(w, "</form>\n")
 	}
-	fmt.Fprint(w, "</div><!-- </div class='struc2frm'... -->\n") //
+	fmt.Fprint(w, "</div><!-- </div class='struc2frm'... -->\n")
 
 	// global replacements
 	ret := strings.ReplaceAll(w.String(), "&comma;", ",")
@@ -672,7 +675,7 @@ func (s2f *s2FT) HTML(intf interface{}) template.HTML {
 // and uses the default formatter
 // to turns it into an HTML form.
 func HTML(intf interface{}) template.HTML {
-	return defaultS2F.HTML(intf)
+	return defaultS2F.Form(intf)
 }
 
 func indentedDump(v interface{}) string {

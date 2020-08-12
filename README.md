@@ -1,4 +1,3 @@
-
 # struc2frm
 
 ![./struc2frm.jpg](./struc2frm.jpg)
@@ -24,6 +23,12 @@ back into an instance of the `struct type` used for the HTML code.
 
 * Decode() and DecodeMultipartForm() also check the   
 auto-generated form token against [CSRF attacks](https://en.wikipedia.org/wiki/Cross-site_request_forgery).  
+
+* Use `Form()` to render an HTML form  
+
+* Use `Card()` to render a read-only HTML card.
+
+<img src="card-view.jpg" height="144px;" style="margin-left:20px;position: relative; top: -10px;" >
 
 * Fully functional example-webserver in directory `systemtest`;  
 compile and run, then  
@@ -100,12 +105,6 @@ Attribute `size` determines height for select/dropdown elements.
 
 * Use `bool` to create a checkbox
 
-### Input settings for mobile phones
-
-* `inputmode="numeric"` opens the numbers keyboard on mobile phones
-
-* `autocapitalize=off` switches off first letter upper casing
-
 ### Separator and fieldset
 
 These are `dummmy` fields for formatting only
@@ -125,27 +124,6 @@ These are `dummmy` fields for formatting only
 * Use `DefaultOptionKey()` to pre-select an option other than the first on clean forms
 
 * Use `onchange='true'` for onchange submit
-
-## General
-
-* Every field can have an attribute `label=...`,  
-appearing before the input element,  
-if not specified, json:"[name]..." is labelized and used
-
-* Every field can have an attribute `suffix=...`,  
-appearing after the input element
-
-* Every field can have an attribute `title=...`  
-for mouse-over tooltips
-
-* Values inside of `label='...'`, `suffix='...'`, `title='...'`, `placeholder='...'`, `pattern='...'`  
-need `&comma;` instead  of `,`
-
-* Every field  can have an attribute `accesskey='t'`  
-Accesskeys are not put into the label, but into the input tag
-
-* Every field  can have an attribute `nobreak='true'`  
-so that the next input remains on the same line
 
 ## Submit button
 
@@ -214,6 +192,36 @@ fmt.Fprintf(
 
 See `handler-file-upload_test.go` on how to programmatically POST a file and key-values.
 
+## General field attributes
+
+* Use `form:"-"` to exclude fields from being rendered  
+neither in form view nor in card view
+
+* Every field can have an attribute `label=...`,  
+appearing before the input element,  
+if not specified, json:"[name]..." is labelized and used
+
+* Every field can have an attribute `suffix=...`,  
+appearing after the input element
+
+* Every field can have an attribute `title=...`  
+for mouse-over tooltips
+
+* Values inside of `label='...'`, `suffix='...'`, `title='...'`, `placeholder='...'`, `pattern='...'`  
+need `&comma;` instead  of `,`
+
+* Every field  can have an attribute `accesskey='t'`  
+Accesskeys are not put into the label, but into the input tag
+
+* Every field  can have an attribute `nobreak='true'`  
+so that the next input remains on the same line
+
+### Field attributes for mobile phones
+
+* `inputmode="numeric"` opens the numbers keyboard on mobile phones
+
+* `autocapitalize=off` switches off first letter upper casing
+
 ## CSS Styling
 
 * Styling is done via CSS selectors  
@@ -269,8 +277,12 @@ mostly to have syntax highlighting while editing it.
 
 ## TODO
 
+* ListView() with labels from `form` tag and values from AddOptions().
+
 * Support for focus() first input element and  
 focus() on first input element having an error
+
+* Can we use `0x2C` instead of `,` ?
 
 * Low Prio: Add field type `option group`  
 meanwhile use `select / dropdown`

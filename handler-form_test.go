@@ -74,7 +74,7 @@ func test(t *testing.T, method string) {
 	<div style='height:0.6rem'>&nbsp;</div>
 	<div class='separator'></div>
 	<label for='hashkey' style='' >Hashkey</label>
-	<input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' autocapitalize=off /><span class='postlabel' >salt, changes randomness</span>
+	<input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' autocapitalize='off' /><span class='postlabel' >salt, changes randomness</span>
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='groups' style='' >Groups</label>
 	<input type='number' name='groups' id='groups' value='%v'  min=1 max='100' maxlength='3' size='3' />

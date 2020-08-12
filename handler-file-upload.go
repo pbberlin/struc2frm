@@ -49,7 +49,7 @@ func FileUploadH(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(
 		w,
 		defaultHTML,
-		s2f.HTML(frm),
+		s2f.Form(frm),
 		fileMsg,
 	)
 

@@ -37,7 +37,7 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	type entryForm struct {
 		Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',title='loading items'"`
 		Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
-		HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize=off,suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
+		HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
 		Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
 		Items       string `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='12',maxlength='4000',title='add times - delimited by newline (enter)'"`
 		Group01     string `json:"group01,omitempty"       form:"subtype='fieldset'"`
@@ -131,7 +131,7 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(
 		w,
 		defaultHTML,
-		s2f.HTML(frm),
+		s2f.Form(frm),
 		binsF,
 	)
 
