@@ -55,6 +55,15 @@ type entryForm struct {
     // Upload     []byte `json:"upload,omitempty"       form:"accesskey='u',accept='.xlsx'"`
 }
 
+// Validate checks whether form entries as a whole are "submittable";
+// more than 'populated'
+func (frm entryForm) Validate() bool {
+    g1 := frm.Department != ""
+    g2 := frm.CheckThis && frm.Items != ""
+    return g1 && g2
+}
+
+
 // getting a converter
 s2f := struc2frm.New()  // or clone existing one
 s2f.ShowHeadline = true // set options
@@ -76,11 +85,15 @@ if populated && err != nil {
 }
 
 if populated {
-    // business logic
+    valid := frm.Validate()
+    if !valid {
+        // business logic
+    }
+    // more business logic
 }
 
 // render to HTML
-fmt.Fprint(w, s2f.HTML(frm))
+fmt.Fprint(w, s2f.Form(frm))
 ```
 
 ## Usage - specific field types

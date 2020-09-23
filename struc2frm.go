@@ -692,8 +692,11 @@ func indentedDump(v interface{}) string {
 	return string(byts)
 }
 
-// Decode decodes the form into an instance of struct
-// and checks the token against CSRF attacks (https://en.wikipedia.org/wiki/Cross-site_request_forgery)
+// Decode the http request form into ptr2Struct;
+// validating the CSRF token (https://en.wikipedia.org/wiki/Cross-site_request_forgery);
+// deriving the 'populated' return value from the existence of the CSRF token.
+// We *could* call Validate() on ptr2Struct if implemented;
+// but valid is *more* than just populated.
 func Decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error) {
 	err = r.ParseForm()
 	if err != nil {
@@ -728,7 +731,7 @@ func decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error)
 
 	err = New().ValidateFormToken(r.Form.Get("token"))
 	if err != nil {
-		return true, errors.Wrap(err, "invalid form token")
+		return true, errors.Wrap(err, "form token exists; but invalid")
 	}
 
 	dec := form.NewDecoder()
@@ -736,6 +739,16 @@ func decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error)
 	err = dec.Decode(ptr2Struct, r.Form)
 	if err != nil {
 		return true, errors.Wrapf(err, "cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+	}
+
+	// this belongs outside of the library into application side
+	if false {
+		if vld, ok := ptr2Struct.(Validator); ok {
+			valid := vld.Validate()
+			if !valid {
+				return false, nil
+			}
+		}
 	}
 
 	return true, nil

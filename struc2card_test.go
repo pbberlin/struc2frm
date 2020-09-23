@@ -23,7 +23,8 @@ type userDataFormT struct {
 
 }
 
-// Complete checks whether all entries as a whole make a complete (updateable) record
+// Validate checks whether form entries as a whole are "submittable";
+// implementation is optional
 func (frm userDataFormT) Validate() bool {
 	g1 := frm.Gender != "" && frm.Decade != "" && frm.Culture != "" && frm.Ownership != ""
 	g2 := frm.Buying && frm.Recent != "" || !frm.Buying
