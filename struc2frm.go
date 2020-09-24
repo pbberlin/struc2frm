@@ -287,8 +287,11 @@ func toInputType(t, attrs string) string {
 	return "text"
 }
 
-// parsing the content of some special 'form' struct tag from the struct
+// parsing the struct tag 'form';
+// returning a *single* value for argument key;
 // i.e. "maxlength='42',size='28',suffix='optional'"
+//       key=size
+//       returns 28
 func structTag(tags, key string) string {
 	tagss := strings.Split(tags, ",")
 	for _, a := range tagss {
@@ -303,7 +306,8 @@ func structTag(tags, key string) string {
 	return ""
 }
 
-// convert the content of some special 'form' struct tag to html input attributes
+// convert the struct tag 'form' to html input attributes;
+// mostly replacing comma with single space;
 // i.e. "maxlength='42',size='28',suffix='optional'"
 func structTagsToAttrs(tags string) string {
 	tagss := strings.Split(tags, ",")
@@ -609,6 +613,9 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			fmt.Fprint(w, val)
 			fmt.Fprintf(w, "</textarea>")
 		case "select":
+			if structTag(attrs, "onchange") == "" {
+				needSubmit = true // select without auto submit => needs submit button
+			}
 			fmt.Fprint(w, "\t<div class='select-arrow'>\n")
 			fmt.Fprintf(w, "\t<select name='%v' id='%v' %v />\n", inpName, inpName, structTagsToAttrs(attrs))
 			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(val.String()))

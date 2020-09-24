@@ -88,14 +88,14 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	frm.Items = strings.Join(itemGroups[dept], "\n")
 
 	//
-	// reshuffling...
+	// business logic: reshuffling...
 	bins := [][]string{}
 	binsF := "" // formatted as html
 	if populated {
 
 		valid := frm.Validate()
 		if !valid {
-			// business logic
+			// more business logic
 		}
 
 		salt1 := req.FormValue("hashkey")
