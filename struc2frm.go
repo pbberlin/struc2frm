@@ -213,9 +213,10 @@ func (s2f *s2FT) verticalSpacer() string {
 // AddOptions is used by the caller to prepare option key-labels
 // for the rendering into HTML()
 func (s2f *s2FT) AddOptions(nameJSON string, keys, labels []string) {
-	if s2f.SelectOptions == nil {
-		s2f.SelectOptions = map[string]options{}
-	}
+	// if s2f.SelectOptions == nil {
+	// 	s2f.SelectOptions = map[string]options{}
+	// }
+	s2f.SelectOptions = map[string]options{} // always reset options to prevent accumulation of options on clones
 	for i, key := range keys {
 		s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{key, labels[i]})
 	}
