@@ -210,16 +210,21 @@ func (s2f *s2FT) verticalSpacer() string {
 	return fmt.Sprintf("\t<div style='height:%3.1frem'>&nbsp;</div>", s2f.VerticalSpacer)
 }
 
-// AddOptions is used by the caller to prepare option key-labels
-// for the rendering into HTML()
-func (s2f *s2FT) AddOptions(nameJSON string, keys, labels []string) {
-	// if s2f.SelectOptions == nil {
-	// 	s2f.SelectOptions = map[string]options{}
-	// }
-	s2f.SelectOptions = map[string]options{} // always reset options to prevent accumulation of options on clones
+// SetOptions to prepare dropdown/select options - with keys and labels
+// for rendering in Form()
+func (s2f *s2FT) SetOptions(nameJSON string, keys, labels []string) {
+	if s2f.SelectOptions == nil {
+		s2f.SelectOptions = map[string]options{}
+	}
+	s2f.SelectOptions[nameJSON] = options{} // always reset options to prevent accumulation of options on clones
 	for i, key := range keys {
 		s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{key, labels[i]})
 	}
+}
+
+// AddOptions is deprecated, use SetOptions instead
+func (s2f *s2FT) AddOptions(nameJSON string, keys, labels []string) {
+	s2f.SetOptions(nameJSON, keys, labels)
 }
 
 // AddError adds validations messages;

@@ -59,6 +59,7 @@ div.struc2frm  label {
     padding: 4px;
     margin:  4px;
 }
+/* screen width dependent min-width below */
 div.struc2frm  label {
     display: inline-block;
     vertical-align: middle;
@@ -125,6 +126,46 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
 }
+
+/* 
+	artificial arrow icon for select/dropdown
+	by wrapping a div around each select ;
+	looks more stylish;
+	the arrow is creatd by the ::after pseudo tag;
+	requires the dropdown button itself to be suppressed;
+
+	even when the pseudo class is disabled, this style must be set;
+
+	also created by struc2frm
+*/
+.select-arrow {
+	position: relative;
+	display: inline-block;
+}
+
+.DISABLED-select-arrow::after {
+
+	/* display:	inline-block; */
+	position: absolute;
+	right:		 1.5rem;
+	top:			 1.3rem;
+	/* z-index: 3; */
+
+	pointer-events: none;
+
+	content: " ";
+	width:	0.6em;
+	height: 0.6em;
+
+	transform-origin: center;
+	transform: rotate(-45deg);
+	/* background-color: blueviolet; */
+	background: transparent;
+	color: var(--clr-pri);
+	border-left:	 2px solid var(--clr-pri);
+	border-bottom: 2px solid var(--clr-pri);
+}
+
 
 /* if s2f.Indent == 0   -   set values by CSS */
 /* ========================================== */
