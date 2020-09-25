@@ -286,6 +286,9 @@ func toInputType(t, attrs string) string {
 	case "int", "float64":
 		return "number"
 	case "bool":
+		switch structTag(attrs, "subtype") { // not always checkbox, but sometimes dropdown
+		case "select":
+			return "select"
 		return "checkbox"
 	case "[]uint8":
 		return "file"
