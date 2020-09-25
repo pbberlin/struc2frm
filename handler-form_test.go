@@ -64,7 +64,7 @@ func test(t *testing.T, method string) {
 	expected := `<h3>Entry form</h3>
 <form name='frmMain'  method='POST' >
 	<input name='token'    type='hidden'   value='%v' />
-	<label for='department' style='' >De<u>p</u>artment</label>
+	<label for='department' style='' >De<u>p</u>artment/Abteilung</label>
 	<div class='select-arrow'>
 	<select name='department' id='department'  subtype='select' accesskey='p' onchange='javascript:this.form.submit();' title='loading items' />
 		<option value='ub'          >UB</option>

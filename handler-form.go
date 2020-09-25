@@ -30,7 +30,7 @@ var itemGroups = map[string][]string{
 }
 
 type entryForm struct {
-	Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',title='loading items'"`
+	Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',label='Department/Abteilung',title='loading items'"`
 	Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
 	HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
 	Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
