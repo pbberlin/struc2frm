@@ -284,6 +284,10 @@ func toInputType(t, attrs string) string {
 		}
 		return "text"
 	case "int", "float64":
+		switch structTag(attrs, "subtype") { // might want dropdown, for instance for list of years
+		case "select":
+			return "select"
+		}
 		return "number"
 	case "bool":
 		switch structTag(attrs, "subtype") { // not always checkbox, but sometimes dropdown
@@ -575,8 +579,14 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		}
 		valStr := val.String()
 		if tp == "bool" {
-			// val.String() of a bool yields "<bool Value>""
+			// val.String() of a bool yields "<bool Value>"
 			valStr = fmt.Sprint(val.Bool())
+		} else if tp == "int" {
+			// val.String() of an int yields "<int Value>"
+			valStr = fmt.Sprint(val.Int())
+		} else if tp == "float64" {
+			// val.String() of a float yields "<float64 Value>"
+			valStr = fmt.Sprint(val.Float())
 		}
 
 		errMsg, hasError := s2f.Errors[inpName]
