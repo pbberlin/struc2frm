@@ -487,9 +487,9 @@ func ExtractUploadedFile(r *http.Request, names ...string) (bts []byte, fname st
 // and turns it into an Form form.
 func (s2f *s2FT) Form(intf interface{}) template.HTML {
 
-	v := reflect.ValueOf(intf) // ifVal
+	v := reflect.ValueOf(intf) // interface val
 	typeOfS := v.Type()
-	// v = ifVal.Elem() // de reference
+	// v = v.Elem() // de reference
 
 	if v.Kind().String() != "struct" {
 		return template.HTML(fmt.Sprintf("struct2form.HTML() - arg1 must be struct - is %v", v.Kind()))
@@ -573,6 +573,11 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		if typeOfS.Field(i).Type.Kind() == reflect.Slice {
 			tp = "[]" + v.Type().Field(i).Type.Elem().Name() // []byte => []uint8
 		}
+		valStr := val.String()
+		if tp == "bool" {
+			// val.String() of a bool yields "<bool Value>""
+			valStr = fmt.Sprint(val.Bool())
+		}
 
 		errMsg, hasError := s2f.Errors[inpName]
 		if hasError {
@@ -599,7 +604,6 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			checked := ""
 			if val.Bool() {
 				checked = "checked"
-
 			}
 			fmt.Fprintf(w, "\t<input type='%v' name='%v' id='%v' value='%v' %v %v />\n", toInputType(tp, attrs), inpName, inpName, "true", checked, structTagsToAttrs(attrs))
 			fmt.Fprintf(w, "\t<input type='hidden' name='%v' value='false' />", inpName)
@@ -628,7 +632,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			}
 			fmt.Fprint(w, "\t<div class='select-arrow'>\n")
 			fmt.Fprintf(w, "\t<select name='%v' id='%v' %v />\n", inpName, inpName, structTagsToAttrs(attrs))
-			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(val.String()))
+			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(valStr))
 			fmt.Fprint(w, "\t</select>\n")
 			fmt.Fprint(w, "\t</div>")
 		case "separator":
