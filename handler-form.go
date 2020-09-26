@@ -30,15 +30,16 @@ var itemGroups = map[string][]string{
 }
 
 type entryForm struct {
-	Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',label='Department/Abteilung',title='loading items'"`
-	Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
-	HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
-	Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
-	Items       string `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='12',maxlength='4000',title='add times - delimited by newline (enter)'"`
-	Group01     string `json:"group01,omitempty"       form:"subtype='fieldset'"`
-	Date        string `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
-	Time        string `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
-	Group02     string `json:"group02,omitempty"       form:"subtype='fieldset'"`
+	Department  string   `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',label='Department/Abteilung',title='loading items'"`
+	Separator01 string   `json:"separator01,omitempty"   form:"subtype='separator'"`
+	HashKey     string   `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
+	Groups      int      `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
+	Items       string   `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='4',maxlength='4000',label='Textarea of<br>line items',title='add times - delimited by newline (enter)'"`
+	Items2      []string `json:"items2,omitempty"        form:"subtype='select',size='3',multiple='true',label='Multi<br>select<br>dropdown'"`
+	Group01     string   `json:"group01,omitempty"       form:"subtype='fieldset'"`
+	Date        string   `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
+	Time        string   `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
+	Group02     string   `json:"group02,omitempty"       form:"subtype='fieldset'"`
 	// stackoverflow.com/questions/399078 - inside character classes escape ^-]\
 	DateLayout string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
 	CheckThis  bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
@@ -66,6 +67,8 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	s2f := New()
 	s2f.ShowHeadline = true
 	s2f.AddOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
+	s2f.AddOptions("items2", []string{"anton", "berta", "caesar", "dora"}, []string{"Anton", "Berta", "Caesar", "Dora"})
+	// s2f.Method = "GET"
 
 	// init values
 	frm := entryForm{
@@ -79,6 +82,11 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	if populated && err != nil {
 		s2f.AddError("global", fmt.Sprintf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(req.Form)))
 		log.Printf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(req.Form))
+	}
+
+	if req.Form.Get("debug") != "" {
+		fmt.Fprintf(w, "<pre>%v</pre>", indentedDump(req.Form))
+		fmt.Fprintf(w, "<pre>%v</pre>", indentedDump(frm))
 	}
 
 	dept := req.FormValue("department")

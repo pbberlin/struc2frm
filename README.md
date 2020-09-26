@@ -43,7 +43,8 @@ type entryForm struct {
     Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
     HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
     Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
-    Items       string `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='12',maxlength='4000',title='add times - delimited by newline (enter)'"`
+    Items       string   `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='4',maxlength='4000',label='Textarea of<br>line items',title='add times - delimited by newline (enter)'"`
+    Items2      []string `json:"items2,omitempty"        form:"subtype='select',size='3',multiple='true',label='Multi<br>select<br>dropdown'"`
     Group01     string `json:"group01,omitempty"       form:"subtype='fieldset'"`
     Date        string `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
     Time        string `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
@@ -67,7 +68,7 @@ func (frm entryForm) Validate() bool {
 // getting a converter
 s2f := struc2frm.New()  // or clone existing one
 s2f.ShowHeadline = true // set options
-s2f.AddOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
+s2f.SetOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
 
 // init values
 frm := entryForm{
@@ -128,15 +129,18 @@ These are `dummmy` fields for formatting only
 
 ### Select / dropdown inputs
 
-* Use `string` field with subtype `select`
+* Use `string | int | float64 | bool` field with subtype `select`
 
 * Use `size=1` or `size=5` to determine the height
 
-* Use `AddOptions()` to fill input[select] elements
+* Use `SetOptions()` to fill input[select] elements
 
 * Use `DefaultOptionKey()` to pre-select an option other than the first on clean forms
 
 * Use `onchange='true'` for onchange submit
+
+* Use `multiple='true'` to enable the selection of __multiple items__  
+  in conjunction with struct field type `[]string | []int | []float64 | []bool`
 
 ## Submit button
 
@@ -290,7 +294,7 @@ mostly to have syntax highlighting while editing it.
 
 ## TODO
 
-* ListView() with labels from `form` tag and values from AddOptions().
+* ListView() with labels from `form` tag and values from SetOptions().
 
 * Support for focus() first input element and  
 focus() on first input element having an error

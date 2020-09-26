@@ -217,8 +217,13 @@ func (s2f *s2FT) SetOptions(nameJSON string, keys, labels []string) {
 		s2f.SelectOptions = map[string]options{}
 	}
 	s2f.SelectOptions[nameJSON] = options{} // always reset options to prevent accumulation of options on clones
-	for i, key := range keys {
-		s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{key, labels[i]})
+
+	if len(keys) != len(labels) {
+		s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{"key", "keys and labels length does not match"})
+	} else {
+		for i, key := range keys {
+			s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{key, labels[i]})
+		}
 	}
 }
 
@@ -251,10 +256,18 @@ func (s2f *s2FT) DefaultOptionKey(name string) string {
 }
 
 // rendering <option val='...'>...</option> tags
-func (opts options) HTML(selected string) string {
+func (opts options) HTML(selecteds []string) string {
 	w := &bytes.Buffer{}
+	// log.Printf("select options - selecteds %v", selecteds)
 	for _, o := range opts {
-		if o.Key == selected {
+		found := false
+		for _, selected := range selecteds {
+			if o.Key == selected {
+				found = true
+				// log.Printf("found %v", o.Key)
+			}
+		}
+		if found {
 			fmt.Fprintf(w, "\t\t<option value='%v' selected >%v</option>\n", o.Key, o.Val)
 		} else {
 			fmt.Fprintf(w, "\t\t<option value='%v'          >%v</option>\n", o.Key, o.Val)
@@ -263,11 +276,39 @@ func (opts options) HTML(selected string) string {
 	return w.String()
 }
 
+/*ValToString converts reflect.Value to string.
+
+go-playground/form.Decode nicely converts all kins of request.Form strings
+into the desired struct types.
+
+But to render the form to HTML, we have to convert those types back to string.
+
+	val.String() of a   bool yields "<bool Value>"
+	val.String() of an   int yields "<int Value>"
+	val.String() of a  float yields "<float64 Value>"
+*/
+func ValToString(val reflect.Value) string {
+
+	tp := val.Kind()
+
+	valStr := val.String() // trivial case
+	if tp == reflect.Bool {
+		valStr = fmt.Sprint(val.Bool())
+	} else if tp == reflect.Int {
+		valStr = fmt.Sprint(val.Int())
+	} else if tp == reflect.Float64 {
+		valStr = fmt.Sprint(val.Float())
+	}
+
+	return valStr
+
+}
+
 // golang type and 'form' struct tag 'subtype' => html input type
 func toInputType(t, attrs string) string {
 
 	switch t {
-	case "string":
+	case "string", "[]string":
 		switch structTag(attrs, "subtype") { // various possibilities - distinguish by subtype
 		case "separator":
 			return "separator"
@@ -283,13 +324,13 @@ func toInputType(t, attrs string) string {
 			return "select"
 		}
 		return "text"
-	case "int", "float64":
+	case "int", "float64", "[]int", "[]float64":
 		switch structTag(attrs, "subtype") { // might want dropdown, for instance for list of years
 		case "select":
 			return "select"
 		}
 		return "number"
-	case "bool":
+	case "bool", "[]bool":
 		switch structTag(attrs, "subtype") { // not always checkbox, but sometimes dropdown
 		case "select":
 			return "select"
@@ -574,21 +615,45 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			continue
 		}
 
+		// getting the value and the type of the iterated struct field
 		val := v.Field(i)
+		if false {
+			// if our entryForm struct would contain pointer fields...
+			val = reflect.Indirect(val) // pointer converted to value
+			val = reflect.Indirect(val) // idempotent
+
+			val = val.Elem() // what is the difference?
+		}
+
 		tp := v.Field(i).Type().Name() // primitive type name: string, int
 		if typeOfS.Field(i).Type.Kind() == reflect.Slice {
 			tp = "[]" + v.Type().Field(i).Type.Elem().Name() // []byte => []uint8
 		}
-		valStr := val.String()
-		if tp == "bool" {
-			// val.String() of a bool yields "<bool Value>"
-			valStr = fmt.Sprint(val.Bool())
-		} else if tp == "int" {
-			// val.String() of an int yields "<int Value>"
-			valStr = fmt.Sprint(val.Int())
-		} else if tp == "float64" {
-			// val.String() of a float yields "<float64 Value>"
-			valStr = fmt.Sprint(val.Float())
+
+		valStr := ValToString(val)
+		valStrs := []string{valStr} // to support select multiple
+
+		// unpacking slices from checkbox arrays or select/dropdown multiple
+		// if tp == "[]string" ||  tp == "[]int" ||  tp == "[]float64"  {
+		if typeOfS.Field(i).Type.Kind() == reflect.Slice {
+
+			// valSlice := reflect.MakeSlice(val.Type(), val.Cap(), val.Len())
+			// valSlice := val.Slice(0, val.Len())
+			valSlice := val // same as above
+
+			// log.Printf(
+			// 	"kind of type %v - elem type %v - capacity %v - length %v - %v",
+			// 	valSlice.Kind(), val.Type(), valSlice.Cap(), valSlice.Len(), valSlice,
+			// )
+
+			valStrs = []string{} // reset
+			for i := 0; i < valSlice.Len(); i++ {
+				// see package fmt/print.go - printValue()::865
+				// vx := valSlice.Slice(i, i+1) // this woudl be a subslice
+				valElem := valSlice.Index(i) // this is an element of a slice
+				// log.Printf("Elem is %v", ValToString(valElem))
+				valStrs = append(valStrs, ValToString(valElem))
+			}
 		}
 
 		errMsg, hasError := s2f.Errors[inpName]
@@ -596,10 +661,15 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 		}
 
-		// label tag for input tag
+		// label positioning for tall inputs
 		specialVAlign := ""
 		if toInputType(tp, attrs) == "textarea" {
 			specialVAlign = "vertical-align: top;"
+		}
+		if toInputType(tp, attrs) == "select" {
+			if structTag(attrs, "multiple") != "" {
+				specialVAlign = "vertical-align: top;"
+			}
 		}
 		if toInputType(tp, attrs) != "separator" &&
 			toInputType(tp, attrs) != "fieldset" {
@@ -644,7 +714,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			}
 			fmt.Fprint(w, "\t<div class='select-arrow'>\n")
 			fmt.Fprintf(w, "\t<select name='%v' id='%v' %v />\n", inpName, inpName, structTagsToAttrs(attrs))
-			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(valStr))
+			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(valStrs))
 			fmt.Fprint(w, "\t</select>\n")
 			fmt.Fprint(w, "\t</div>")
 		case "separator":

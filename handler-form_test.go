@@ -29,15 +29,22 @@ func test(t *testing.T, method string) {
 	var postBody io.Reader
 
 	if method == "GET" {
-		pth = fmt.Sprintf("/?groups=%v&token=%v", numGroups, token)
-		t.Logf("testing GET  request with numGroups = %v ", numGroups)
+		pth = fmt.Sprintf("/?groups=%v&token=%v&items2=anton&items2=caesar",
+			numGroups, token,
+		)
+		t.Logf("testing GET  request with \nnumGroups = %v ", numGroups)
 	}
 	if method == "POST" {
 		data := url.Values{}
 		data.Set("groups", fmt.Sprintf("%v", numGroups))
+		data.Set("items2", "anton")
+		data.Add("items2", "caesar")
 		data.Set("token", token)
 		postBody = strings.NewReader(data.Encode())
-		t.Logf("testing POST request with numGroups = %v ; %v ", numGroups, data.Encode())
+		t.Logf(
+			"testing POST request with \nnumGroups = %v ; %v ",
+			numGroups, data.Encode(),
+		)
 	}
 
 	req, err := http.NewRequest(method, pth, postBody) // <-- encoded payload
@@ -58,6 +65,8 @@ func test(t *testing.T, method string) {
 
 	if status := w.Code; status != http.StatusOK {
 		t.Errorf("returned status code: got %v want %v", status, http.StatusOK)
+	} else {
+		t.Logf("Response code OK")
 	}
 
 	// Check the response body
@@ -79,13 +88,23 @@ func test(t *testing.T, method string) {
 	<label for='groups' style='' >Groups</label>
 	<input type='number' name='groups' id='groups' value='%v'  min=1 max='100' maxlength='3' size='3' />
 	<div style='height:0.6rem'>&nbsp;</div>
-	<label for='items' style='vertical-align: top;' >Items</label>
-	<textarea name='items' id='items'  subtype='textarea' cols='22' rows='12' maxlength='4000' title='add times - delimited by newline (enter)' />Brutsyum, Zusoh
+	<label for='items' style='vertical-align: top;' >Textarea of<br>line items</label>
+	<textarea name='items' id='items'  subtype='textarea' cols='22' rows='4' maxlength='4000' title='add times - delimited by newline (enter)' />Brutsyum, Zusoh
 Dovosuke, Udsyuke
 Fyrkros, Loekyo
 Gyaffsydu, Loekusde
 Heyos, Ysyr
 Rtoynbsonnos, Tars</textarea>
+	<div style='height:0.6rem'>&nbsp;</div>
+	<label for='items2' style='vertical-align: top;' >Multi<br>select<br>dropdown</label>
+	<div class='select-arrow'>
+	<select name='items2' id='items2'  subtype='select' size='3' multiple='true' />
+		<option value='anton' selected >Anton</option>
+		<option value='berta'          >Berta</option>
+		<option value='caesar' selected >Caesar</option>
+		<option value='dora'          >Dora</option>
+	</select>
+	</div>
 	<div style='height:0.6rem'>&nbsp;</div>
 <fieldset>	<legend>&nbsp;Group 01&nbsp;</legend>
 	<label for='date' style='' >Date</label>
@@ -116,7 +135,9 @@ Rtoynbsonnos, Tars</textarea>
 		time.Now().Format("2006-01-02"),
 		time.Now().Format("15:04"),
 	)
+
 	body := w.Body.String()
+
 	if !strings.Contains(body, expected) {
 		// t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
 		t.Errorf("handler returned unexpected body")
