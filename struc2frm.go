@@ -362,6 +362,8 @@ func structTagsToAttrs(tags string) string {
 			ret += " " + t
 		case strings.HasPrefix(tl, "inputmode="): // 'numeric' shows only numbers keysboard on mobile phones
 			ret += " " + t
+		case strings.HasPrefix(tl, "multiple"): // dropdown/select - select multiple items; no value
+			ret += " " + t
 		default:
 			// suffix    is not converted into an attribute
 			// nobreak   is not converted into an attribute
