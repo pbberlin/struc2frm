@@ -395,6 +395,8 @@ func structTagsToAttrs(tags string) string {
 			ret += " " + t
 		case strings.HasPrefix(tl, "onchange"): // file upload extension
 			ret += " " + "onchange='javascript:this.form.submit();'"
+		case strings.HasPrefix(tl, "wildcardselect"): // show extra input next to select - to select options
+			ret += " " + t
 		case strings.HasPrefix(tl, "accesskey="): // goes into input, not into label
 			ret += " " + t
 		case strings.HasPrefix(tl, "title="): // mouse over tooltip - alt
@@ -717,6 +719,97 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(valStrs))
 			fmt.Fprint(w, "\t</select>\n")
 			fmt.Fprint(w, "\t</div>")
+			if structTag(attrs, "wildcardselect") != "" {
+				fmt.Fprint(w, "\t\t<div class='wildcardselect'>\n")
+				// onchange only triggers on blur
+				// onkeydown makes too much noise
+				// oninput is just perfect
+				fmt.Fprintf(w, `		  <input type='text' name='%v' id='%v' value='%v'
+					title='case sensitive | multiple patterns with * | separated by ; | ! negates'
+					oninput='javascript:selectOptions(this);'
+					maxlength='40' tabindex=-1
+					placeholder='a*;b*'
+					/>`,
+					inpName+"_so",
+					inpName+"_so",
+					"",
+				)
+				fmt.Fprint(w, "\n\t\t</div>")
+				/*
+					JS function is printed repeatedly for multiple selects
+					and multiple forms per request.
+					The complexity of keeping track would be even more ugly.
+				*/
+				fmt.Fprintf(w, `
+					<script type="text/javascript">
+
+						function selectOptions(src) {
+							// console.log(src)
+							if (src) {
+								var myName = src.getAttribute("name");
+								console.log("on input " + myName);
+								var selectName = myName.substring(0, myName.length - 3);
+								console.log("  corresponding select is " + selectName);
+
+								var select = document.getElementById(selectName);
+								if (select) {
+									var wildcards = src.value;
+									var wildcardsArray = wildcards.split(";");
+									for (idx = 0; idx < wildcardsArray.length; ++idx) {
+										var wildcard = wildcardsArray[idx];
+										var negate = false;
+										if (wildcard.charAt(0) === "!") {
+											wildcard = wildcard.substring(1);
+											var negate = true;
+										}
+										console.log("  wildcard selection is '" + wildcard + "' - negation is " + negate);
+										for (var i = 0, l = select.options.length, o; i < l; i++) {
+											o = select.options[i];
+											var doesMatch = matchRule(o.text, wildcard);
+											if (negate) {
+												doesMatch = !doesMatch;
+											}
+											if (doesMatch) {
+												o.selected = true;
+												console.log("   selected " + o.text);
+											} else {
+												console.log("   selected not " + o.text);
+											}
+										}
+
+									}
+
+								}
+							}
+						}
+
+                        function matchRule(str, rule) {
+							// for this solution to work on any string, no matter what characters it has
+							//  => is an arrow function - creating the func escapeRegex()
+                            var escapeRegex = (strArg) => strArg.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+
+                            // "."  => Find a single character, except newline or line terminator
+                            // ".*" => Matches any string that contains zero or more characters
+                            rule = rule.split("*").map(escapeRegex).join(".*");
+
+                            // "^"  => Matches any string with the following at the beginning of it
+                            // "$"  => Matches any string with that in front at the end of it
+                            rule = "^" + rule + "$"
+
+							console.log("     rule ", rule, " on str ", str);
+
+                            //Create a regular expression object for matching string
+                            var regex = new RegExp(rule);
+
+                            //Returns true if it finds a match, otherwise it returns false
+                            return regex.test(str);
+                        }
+
+					</script>
+
+				`)
+			}
+
 		case "separator":
 			fmt.Fprint(w, "\t<div class='separator'></div>")
 		case "fieldset":

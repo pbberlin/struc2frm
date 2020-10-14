@@ -142,6 +142,13 @@ These are `dummmy` fields for formatting only
 * Use `multiple='true'` to enable the selection of __multiple items__  
   in conjunction with struct field type `[]string | []int | []float64 | []bool`
 
+* Use `wildcardselect='true'` to show an additional input after the select,  
+accepting wildcard expressions with `*` for selecting options from the select.  
+Wildcard expressions are case sensitive.  
+Multiple wildcard expressions can be chained using `;`.  
+Any wildcard expression can be negated by prefixing it with `!`.  
+Example `Car*;Bike*;!Plane*`
+
 ## Submit button
 
 If your form only has `select` inputs with `onchange='this.form.submit()'`  
@@ -296,8 +303,8 @@ mostly to have syntax highlighting while editing it.
 
 * ListView() with labels from `form` tag and values from SetOptions().
 
-* Support for focus() first input element and  
-focus() on first input element having an error
+* Support for focus() some input element  
+and focus() on first input element having an error
 
 * Can we use `0x2C` instead of `,` ?
 

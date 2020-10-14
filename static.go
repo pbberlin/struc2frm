@@ -140,7 +140,9 @@ input[type="number"] {
 */
 .select-arrow {
 	position: relative;
-	display: inline-block;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
 }
 
 .DISABLED-select-arrow::after {
