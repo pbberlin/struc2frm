@@ -727,7 +727,8 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 				fmt.Fprintf(w, `		  <input type='text' name='%v' id='%v' value='%v'
 					title='case sensitive | multiple patterns with * | separated by ; | ! negates'
 					oninput='javascript:selectOptions(this);'
-					maxlength='40' tabindex=-1
+					maxlength='40' 
+					xxtabindex=-1
 					placeholder='a*;b*'
 					/>`,
 					inpName+"_so",
@@ -741,71 +742,83 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 					The complexity of keeping track would be even more ugly.
 				*/
 				fmt.Fprintf(w, `
-					<script type="text/javascript">
+				<script type="text/javascript">
 
-						function selectOptions(src) {
-							// console.log(src)
-							if (src) {
-								var myName = src.getAttribute("name");
-								console.log("on input " + myName);
-								var selectName = myName.substring(0, myName.length - 3);
-								console.log("  corresponding select is " + selectName);
+				var wildcardselectDebug = false;
 
-								var select = document.getElementById(selectName);
-								if (select) {
-									var wildcards = src.value;
-									var wildcardsArray = wildcards.split(";");
-									for (idx = 0; idx < wildcardsArray.length; ++idx) {
-										var wildcard = wildcardsArray[idx];
-										var negate = false;
-										if (wildcard.charAt(0) === "!") {
-											wildcard = wildcard.substring(1);
-											var negate = true;
-										}
-										console.log("  wildcard selection is '" + wildcard + "' - negation is " + negate);
-										for (var i = 0, l = select.options.length, o; i < l; i++) {
-											o = select.options[i];
-											var doesMatch = matchRule(o.text, wildcard);
-											if (negate) {
-												doesMatch = !doesMatch;
-											}
-											if (doesMatch) {
-												o.selected = true;
-												console.log("   selected " + o.text);
-											} else {
-												console.log("   selected not " + o.text);
-											}
-										}
+				function matchRule(str, rule) {
+					// define an arrow function with => 
+					// creating the func escapeRegex()
+					// escape all regex control characters; i.e. [ with \[
+					// this could be moved out into a plain JS function
+					var escapeRegex = (strArg) => strArg.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
 
-									}
+					// split by *
+					// escape regex chars of the parts
+					// join  by .* 
+					// "."  matches single character, except newline or line terminator
+					// ".*" matches any string containing zero or more characters
+					rule = rule.split("*").map(escapeRegex).join(".*");
 
+					// "^" is expression start
+					// "$" is expression end
+					rule = "^" + rule + "$"
+
+					if (wildcardselectDebug) {
+						console.log("     testing rule '" + rule + "' on str '" + str + "'");						
+					}
+
+					// create a regular expression object for matching string
+					var regex = new RegExp(rule);
+
+					//Returns true if it finds a match, otherwise it returns false
+					return regex.test(str);
+				}
+
+				function selectOptions(src) {
+					// console.log(src)
+					if (src) {
+						var myName = src.getAttribute("name");
+						// console.log("on input " + myName);
+						var selectName = myName.substring(0, myName.length - 3);
+						// console.log("  corresponding select is " + selectName);
+
+						var select = document.getElementById(selectName);
+						if (select) {
+							var wildcards = src.value;
+							var wildcardsArray = wildcards.split(";");
+							for (idx = 0; idx < wildcardsArray.length; ++idx) {
+								var wildcard = wildcardsArray[idx];
+								var negate = false;
+								if (wildcard.charAt(0) === "!") {
+									wildcard = wildcard.substring(1);
+									var negate = true;
 								}
+								for (var i = 0, l = select.options.length, o; i < l; i++) {
+									o = select.options[i];
+									var doesMatch = matchRule(o.text, wildcard);
+									if (negate) {
+										doesMatch = !doesMatch;
+									}
+									if (doesMatch) {
+										o.selected = true;
+										if (wildcardselectDebug) {
+											console.log("   selected     " + o.text + " - wildcard '" + wildcard + "' - negation " + negate);
+										}
+									} else {
+										if (wildcardselectDebug) {
+											console.log("   not selected " + o.text + " - wildcard '" + wildcard + "' - negation " + negate);
+										}
+									}
+								}
+
 							}
+
 						}
+					}
+				}
 
-                        function matchRule(str, rule) {
-							// for this solution to work on any string, no matter what characters it has
-							//  => is an arrow function - creating the func escapeRegex()
-                            var escapeRegex = (strArg) => strArg.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
-
-                            // "."  => Find a single character, except newline or line terminator
-                            // ".*" => Matches any string that contains zero or more characters
-                            rule = rule.split("*").map(escapeRegex).join(".*");
-
-                            // "^"  => Matches any string with the following at the beginning of it
-                            // "$"  => Matches any string with that in front at the end of it
-                            rule = "^" + rule + "$"
-
-							console.log("     rule ", rule, " on str ", str);
-
-                            //Create a regular expression object for matching string
-                            var regex = new RegExp(rule);
-
-                            //Returns true if it finds a match, otherwise it returns false
-                            return regex.test(str);
-                        }
-
-					</script>
+				</script>
 
 				`)
 			}

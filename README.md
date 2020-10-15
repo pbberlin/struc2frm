@@ -147,7 +147,8 @@ accepting wildcard expressions with `*` for selecting options from the select.
 Wildcard expressions are case sensitive.  
 Multiple wildcard expressions can be chained using `;`.  
 Any wildcard expression can be negated by prefixing it with `!`.  
-Example `Car*;Bike*;!Plane*`
+Example `Car*;Bike*;!Plane*`.  
+To debug, open the Javascript console of your browser and type `wildcardselectDebug = true;`
 
 ## Submit button
 
