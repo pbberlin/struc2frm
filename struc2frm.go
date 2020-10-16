@@ -797,17 +797,22 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 								for (var i = 0, l = select.options.length, o; i < l; i++) {
 									o = select.options[i];
 									var doesMatch = matchRule(o.text, wildcard);
-									if (negate) {
-										doesMatch = !doesMatch;
-									}
-									if (doesMatch) {
+									// if (negate) {
+									// 	doesMatch = !doesMatch;
+									// }
+									if (doesMatch && !negate) {
 										o.selected = true;
 										if (wildcardselectDebug) {
 											console.log("   selected     " + o.text + " - wildcard '" + wildcard + "' - negation " + negate);
 										}
+									} else if (doesMatch && negate) {
+										o.selected = false;
+										if (wildcardselectDebug) {
+											console.log(" unselected     " + o.text + " - wildcard '" + wildcard + "' - negation " + negate);
+										}
 									} else {
 										if (wildcardselectDebug) {
-											console.log("   not selected " + o.text + " - wildcard '" + wildcard + "' - negation " + negate);
+											console.log("   no match     " + o.text + " - wildcard '" + wildcard + "' - negation " + negate);
 										}
 									}
 								}
