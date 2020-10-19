@@ -135,7 +135,7 @@ These are `dummmy` fields for formatting only
 
 * Use `SetOptions()` to fill input[select] elements
 
-* Use `DefaultOptionKey()` to pre-select an option other than the first on clean forms
+* Use `DefaultOptionKey()` to read the pre-selected option on clean forms
 
 * Use `onchange='true'` for onchange submit
 
@@ -144,12 +144,12 @@ These are `dummmy` fields for formatting only
 
 * Use `wildcardselect='true'` to show an additional input after the select,  
 accepting wildcard expressions with `*` for selecting options from the select.  
-Wildcard expressions are case sensitive.  
-Multiple wildcard expressions can be chained using `;`.  
-Multiple expressions are applied successively additively.  
-Any wildcard expression can be negated by `!` prefixing, resulting in _unselect_.  
-Example `Car*;Bike*;!Plane*`.  
-To debug, open the Javascript console of your browser and type `wildcardselectDebug = true;`
+  * Wildcard expressions are case sensitive.  
+  * Multiple wildcard expressions can be chained using `;`.  
+  * Multiple expressions are applied successively additively.  
+  * Any wildcard expression can be negated by `!` prefixing, resulting in _unselect_.  
+  * Example `Car*;Bike*;!Carsharing`.  
+  * To debug, open the Javascript console of your browser and type `wildcardselectDebug = true;`
 
 ## Submit button
 

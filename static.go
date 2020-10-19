@@ -240,6 +240,8 @@ div.struc2frm select[name="department"] {
 
 div.wildcardselect {
     display: inline-block;
+	margin-top: 0.2rem; 
+	vertical-align: top;
 }
 div.wildcardselect input {
     font-size: 80%;
