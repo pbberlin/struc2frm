@@ -39,18 +39,18 @@ compile and run, then
 
 ```golang
 type entryForm struct {
-    Department  string `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',label='Department/Abteilung',title='loading items'"`
-    Separator01 string `json:"separator01,omitempty"   form:"subtype='separator'"`
-    HashKey     string `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
-    Groups      int    `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
+    Department  string   `json:"department,omitempty"    form:"subtype='select',accesskey='p',onchange='true',label='Department/Abteilung',title='loading items'"`
+    Separator01 string   `json:"separator01,omitempty"   form:"subtype='separator'"`
+    HashKey     string   `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
+    Groups      int      `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
     Items       string   `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='4',maxlength='4000',label='Textarea of<br>line items',title='add times - delimited by newline (enter)'"`
     Items2      []string `json:"items2,omitempty"        form:"subtype='select',size='3',multiple='true',label='Multi<br>select<br>dropdown'"`
-    Group01     string `json:"group01,omitempty"       form:"subtype='fieldset'"`
-    Date        string `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
-    Time        string `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
-    Group02     string `json:"group02,omitempty"       form:"subtype='fieldset'"`
-    DateLayout  string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
-    CheckThis   bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
+    Group01     string   `json:"group01,omitempty"       form:"subtype='fieldset'"`
+    Date        string   `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
+    Time        string   `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
+    Group02     string   `json:"group02,omitempty"       form:"subtype='fieldset'"`
+    DateLayout  string   `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
+    CheckThis   bool     `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
 
     // Requires distinct way of form parsing
     // Upload     []byte `json:"upload,omitempty"       form:"accesskey='u',accept='.xlsx'"`
@@ -70,10 +70,10 @@ s2f := struc2frm.New()  // or clone existing one
 s2f.ShowHeadline = true // set options
 s2f.SetOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
 
-// init values
+// init values - non-multiple
 frm := entryForm{
     HashKey: time.Now().Format("2006-01-02"),
-    Groups:  4,
+    Groups:  2,
     Date:    time.Now().Format("2006-01-02"),
     Time:    time.Now().Format("15:04"),
 }
@@ -83,6 +83,11 @@ populated, err := Decode(req, &frm)
 if populated && err != nil {
     s2f.AddError("global", fmt.Sprintf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form)))
     log.Printf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(r.Form))
+}
+
+// init values - multiple
+if len(frm.Items2) == 0 {
+    frm.Items2 = []string{"berta", "dora"}
 }
 
 if populated {
@@ -139,6 +144,8 @@ These are `dummmy` fields for formatting only
 
 * Use `onchange='true'` for onchange submit
 
+#### Select multiple
+
 * Use `multiple='true'` to enable the selection of __multiple items__  
   in conjunction with struct field type `[]string | []int | []float64 | []bool`
 
@@ -150,6 +157,22 @@ accepting wildcard expressions with `*` for selecting options from the select.
   * Any wildcard expression can be negated by `!` prefixing, resulting in _unselect_.  
   * Example `Car*;Bike*;!Carsharing`.  
   * To debug, open the Javascript console of your browser and type `wildcardselectDebug = true;`
+
+* Parsing of HTTP request into form struct for `multiple` fields  
+is __additive__.
+
+* => Init values should not be set before parsing but afterwards.  
+
+```golang
+// ...
+populated, err := Decode(req, &frm)
+// ...
+
+if len(frm.Items2) == 0 {
+    frm.Items2 = []string{"berta", "dora"} // setting defaults if request parsing did not yield any user input
+}
+```
+
 
 ## Submit button
 
@@ -303,10 +326,11 @@ mostly to have syntax highlighting while editing it.
 
 ## TODO
 
-* ListView() with labels from `form` tag and values from SetOptions().
-
 * Support for focus() some input element  
-and focus() on first input element having an error
+
+* Support for focus() on first input having an error
+
+* ListView() with labels from `form` tag and values from SetOptions().
 
 * Can we use `0x2C` instead of `,` ?
 

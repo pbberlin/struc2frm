@@ -633,10 +633,11 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		}
 
 		valStr := ValToString(val)
-		valStrs := []string{valStr} // to support select multiple
+		valStrs := []string{valStr} // for select multiple='false'
 
-		// unpacking slices from checkbox arrays or select/dropdown multiple
-		// if tp == "[]string" ||  tp == "[]int" ||  tp == "[]float64"  {
+		// for select multiple='true'
+		// 		if tp == []string or []int or []float64 ...
+		// 		unpack slice from checkbox arrays or select/dropdown multiple
 		if typeOfS.Field(i).Type.Kind() == reflect.Slice {
 
 			// valSlice := reflect.MakeSlice(val.Type(), val.Cap(), val.Len())
@@ -655,6 +656,16 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 				valElem := valSlice.Index(i) // this is an element of a slice
 				// log.Printf("Elem is %v", ValToString(valElem))
 				valStrs = append(valStrs, ValToString(valElem))
+			}
+
+			// select multiple:
+			// having extracted valStrs, we want prevent additive request into form parsing;
+			// but CanSet() yields false;
+			// better setting init values *conditionally* *after* parsing
+			if valSlice.CanSet() && false {
+				log.Printf("%v -  %v - %v - trying slice reset", fn, tp, val.Type())
+				valueSlice := reflect.MakeSlice(val.Type(), 0, 5)
+				valueSlice.Set(valueSlice)
 			}
 		}
 

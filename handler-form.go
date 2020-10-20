@@ -70,7 +70,7 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	s2f.AddOptions("items2", []string{"anton", "berta", "caesar", "dora"}, []string{"Anton", "Berta", "Caesar", "Dora"})
 	// s2f.Method = "GET"
 
-	// init values
+	// init values - non-multiple
 	frm := entryForm{
 		HashKey: time.Now().Format("2006-01-02"),
 		Groups:  2,
@@ -82,6 +82,11 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	if populated && err != nil {
 		s2f.AddError("global", fmt.Sprintf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(req.Form)))
 		log.Printf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(req.Form))
+	}
+
+	// init values - multiple
+	if len(frm.Items2) == 0 {
+		frm.Items2 = []string{"berta", "dora"}
 	}
 
 	if req.Form.Get("debug") != "" {
