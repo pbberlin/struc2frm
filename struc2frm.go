@@ -63,26 +63,30 @@ type options []option
 
 // s2FT contains formatting options for converting a struct into a HTML form
 type s2FT struct {
-	FormTag     bool   // include <form...> and </form>
-	Name        string // form name
-	Method      string // form method - default is POST
-	InstanceID  string // to distinguish several instances on same website
-	FormTimeout int    // hours until a form post is rejected
-	Salt        string
+	ShowHeadline bool   // show headline derived from struct name
+	FormTag      bool   // include <form...> and </form>
+	Name         string // form name; default 'frmMain'; if distinct names are needed, application may change the values
+	Method       string // form method - default is POST
+	InstanceID   string // to distinguish several instances on same website
 
-	SelectOptions map[string]options // select inputs get their options from here
-	Errors        map[string]string  // validation errors by json name of input
+	Salt        string // generated from MAC address - see below
+	FormTimeout int    // hours until a form post is rejected - CSRF token
+
+	FocusFirstError bool // setfocus(); takes precedence over focus attribute
+	ForceSubmit     bool // show submit, despite having only auto-changing selects
 
 	Indent         int     // horizontal width of the labels column
 	IndentAddenum  int     // for h3-headline and submit button, depends on CSS paddings and margins of div and input
-	ForceSubmit    bool    // show submit, despite having only auto-changing selects
-	ShowHeadline   bool    // headline derived from struct name
 	VerticalSpacer float64 // in CSS REM
 
 	CSS string // general formatting - provided defaults can be replaced
 
 	// Card View options
 	SkipEmpty bool // Fields with value "" are not rendered
+
+	selectOptions map[string]options // select inputs get their options from here
+	errors        map[string]string  // validation errors by json name of input
+
 }
 
 var addressMAC = ""
@@ -104,25 +108,30 @@ func init() {
 // New converter
 func New() *s2FT {
 	s2f := s2FT{
-		FormTag:     true,
-		Name:        "frmMain",
-		Method:      "POST",
-		FormTimeout: 2,
-		Salt:        addressMAC,
+		ShowHeadline: false,
+		FormTag:      true,
+		// Name - see below
+		Method: "POST",
 
-		SelectOptions: map[string]options{},
-		Errors:        map[string]string{},
+		Salt:        addressMAC,
+		FormTimeout: 2,
+
+		selectOptions: map[string]options{},
+		errors:        map[string]string{},
+
+		FocusFirstError: true,
+		ForceSubmit:     false,
 
 		Indent:         0,           // non-zero values override the CSS
 		IndentAddenum:  2 * (4 + 4), // horizontal padding and margin
-		ForceSubmit:    false,
-		ShowHeadline:   false,
 		VerticalSpacer: 0.6,
 
 		CSS: defaultCSS,
 	}
 	s2f.InstanceID = fmt.Sprint(time.Now().UnixNano())
-	s2f.InstanceID = s2f.InstanceID[len(s2f.InstanceID)-8:] // last 8 digits
+	s2f.InstanceID = s2f.InstanceID[len(s2f.InstanceID)-8:] // use the last 8 digits
+	s2f.Name = fmt.Sprintf("frmMain_%s", s2f.InstanceID)
+	s2f.Name = "frmMain" // form name can be changed by application
 
 	return &s2f
 }
@@ -131,7 +140,7 @@ func New() *s2FT {
 // and clones it for safe usage in parallel http requests
 func (s2f *s2FT) CloneForRequest() *s2FT {
 	clone := *s2f
-	clone.Errors = map[string]string{}
+	clone.errors = map[string]string{}
 	clone.InstanceID = fmt.Sprint(time.Now().UnixNano())
 	clone.InstanceID = clone.InstanceID[len(clone.InstanceID)-8:] // last 8 digits
 	return &clone
@@ -213,46 +222,55 @@ func (s2f *s2FT) verticalSpacer() string {
 // SetOptions to prepare dropdown/select options - with keys and labels
 // for rendering in Form()
 func (s2f *s2FT) SetOptions(nameJSON string, keys, labels []string) {
-	if s2f.SelectOptions == nil {
-		s2f.SelectOptions = map[string]options{}
+	if s2f.selectOptions == nil {
+		s2f.selectOptions = map[string]options{}
 	}
-	s2f.SelectOptions[nameJSON] = options{} // always reset options to prevent accumulation of options on clones
+	s2f.selectOptions[nameJSON] = options{} // always reset options to prevent accumulation of options on clones
 
 	if len(keys) != len(labels) {
-		s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{"key", "keys and labels length does not match"})
+		s2f.selectOptions[nameJSON] = append(s2f.selectOptions[nameJSON], option{"key", "keys and labels length does not match"})
 	} else {
 		for i, key := range keys {
-			s2f.SelectOptions[nameJSON] = append(s2f.SelectOptions[nameJSON], option{key, labels[i]})
+			s2f.selectOptions[nameJSON] = append(s2f.selectOptions[nameJSON], option{key, labels[i]})
 		}
 	}
 }
 
-// AddOptions is deprecated, use SetOptions instead
-func (s2f *s2FT) AddOptions(nameJSON string, keys, labels []string) {
-	s2f.SetOptions(nameJSON, keys, labels)
-}
-
-// AddError adds validations messages;
+// AddError adds a validation message;
 // key 'global' writes msg on top of form.
 func (s2f *s2FT) AddError(nameJSON string, msg string) {
-	if s2f.Errors == nil {
-		s2f.Errors = map[string]string{}
+	if s2f.errors == nil {
+		s2f.errors = map[string]string{}
 	}
-	if _, ok := s2f.Errors[nameJSON]; ok {
-		s2f.Errors[nameJSON] += "<br>\n"
+	if _, ok := s2f.errors[nameJSON]; ok {
+		s2f.errors[nameJSON] += "<br>\n"
 	}
-	s2f.Errors[nameJSON] += msg
+	s2f.errors[nameJSON] += msg
+}
+
+// AddErrors adds validation messages;
+// key 'global' writes msg on top of form.
+func (s2f *s2FT) AddErrors(errs map[string]string) {
+	if s2f.errors == nil {
+		s2f.errors = map[string]string{}
+	}
+	for nameJSON, msg := range errs {
+		if _, ok := s2f.errors[nameJSON]; ok {
+			s2f.errors[nameJSON] += "<br>\n"
+		}
+		s2f.errors[nameJSON] += msg
+	}
 }
 
 // DefaultOptionKey gives the value to be selected on form init
 func (s2f *s2FT) DefaultOptionKey(name string) string {
-	if s2f.SelectOptions == nil {
+	if s2f.selectOptions == nil {
 		return ""
 	}
-	if len(s2f.SelectOptions[name]) == 0 {
+	if len(s2f.selectOptions[name]) == 0 {
 		return ""
 	}
-	return s2f.SelectOptions[name][0].Key
+	return s2f.selectOptions[name][0].Key
 }
 
 // rendering <option val='...'>...</option> tags
@@ -406,7 +424,9 @@ func structTagsToAttrs(tags string) string {
 		case strings.HasPrefix(tl, "inputmode="): // 'numeric' shows only numbers keysboard on mobile phones
 			ret += " " + t
 		case strings.HasPrefix(tl, "multiple"): // dropdown/select - select multiple items; no value
-			ret += " " + t
+			ret += " " + "multiple" // only the attribute; no value
+		case strings.HasPrefix(tl, "autofocus"):
+			ret += " " + "autofocus" // only the attribute; no value
 		default:
 			// suffix    is not converted into an attribute
 			// nobreak   is not converted into an attribute
@@ -547,6 +567,35 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 	w := &bytes.Buffer{}
 
 	needSubmit := false // only select with onchange:submit() ?
+
+	// collect fields with initial focus and fields with errors
+	inputWithFocus := ""      // first input having an autofocus attribute
+	firstInputWithError := "" // first input having an error message
+	if s2f.FocusFirstError {
+		for i := 0; i < v.NumField(); i++ {
+			inpName := typeOfS.Field(i).Tag.Get("json") // i.e. date_layout
+			inpName = strings.Replace(inpName, ",omitempty", "", -1)
+			_, hasError := s2f.errors[inpName]
+			if hasError {
+				firstInputWithError = inpName
+				break
+			}
+		}
+	}
+	// error focus takes precedence over init focus
+	if firstInputWithError != "" {
+		inputWithFocus = firstInputWithError
+	} else {
+		for i := 0; i < v.NumField(); i++ {
+			inpName := typeOfS.Field(i).Tag.Get("json") // i.e. date_layout
+			inpName = strings.Replace(inpName, ",omitempty", "", -1)
+			attrs := typeOfS.Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28'"
+			if structTag(attrs, "autofocus") != "" {
+				inputWithFocus = inpName
+			}
+		}
+	}
+
 	s2f.RenderCSS(w)
 
 	// one class selector for general - one for specific instance
@@ -556,7 +605,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		fmt.Fprintf(w, "<h3>%v</h3>\n", labelize(typeOfS.Name()))
 	}
 
-	//
+	// file upload requires distinct form attribute
 	uploadPostForm := false
 	for i := 0; i < v.NumField(); i++ {
 		tp := v.Field(i).Type().Name() // primitive type name: string, int
@@ -578,7 +627,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		}
 	}
 
-	if errMsg, ok := s2f.Errors["global"]; ok {
+	if errMsg, ok := s2f.errors["global"]; ok {
 		fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 	}
 
@@ -599,7 +648,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		inpName = strings.Replace(inpName, ",omitempty", "", -1)
 		frmLabel := labelize(inpName)
 
-		attrs := typeOfS.Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28',suffix='optional'"
+		attrs := typeOfS.Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28'"
 
 		if structTag(attrs, "label") != "" {
 			frmLabel = structTag(attrs, "label")
@@ -620,11 +669,10 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		// getting the value and the type of the iterated struct field
 		val := v.Field(i)
 		if false {
-			// if our entryForm struct would contain pointer fields...
+			// if our entry form struct would contain pointer fields...
 			val = reflect.Indirect(val) // pointer converted to value
 			val = reflect.Indirect(val) // idempotent
-
-			val = val.Elem() // what is the difference?
+			val = val.Elem()            // what is the difference?
 		}
 
 		tp := v.Field(i).Type().Name() // primitive type name: string, int
@@ -669,7 +717,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			}
 		}
 
-		errMsg, hasError := s2f.Errors[inpName]
+		errMsg, hasError := s2f.errors[inpName]
 		if hasError {
 			fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 		}
@@ -727,7 +775,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			}
 			fmt.Fprint(w, "\t<div class='select-arrow'>\n")
 			fmt.Fprintf(w, "\t<select name='%v' id='%v' %v />\n", inpName, inpName, structTagsToAttrs(attrs))
-			fmt.Fprint(w, s2f.SelectOptions[inpName].HTML(valStrs))
+			fmt.Fprint(w, s2f.selectOptions[inpName].HTML(valStrs))
 			fmt.Fprint(w, "\t</select>\n")
 			fmt.Fprint(w, "\t</div>")
 			if structTag(attrs, "wildcardselect") != "" {
@@ -738,7 +786,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 				fmt.Fprintf(w, `		  <input type='text' name='%v' id='%v' value='%v'
 					title='case sensitive | multiple patterns with * | separated by ; | ! negates'
 					oninput='javascript:selectOptions(this);'
-					maxlength='40' 
+					maxlength='40'
 					xxtabindex=-1
 					placeholder='a*;b*'
 					/>`,
@@ -758,7 +806,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 				var wildcardselectDebug = false;
 
 				function matchRule(str, rule) {
-					// define an arrow function with => 
+					// define an arrow function with =>
 					// creating the func escapeRegex()
 					// escape all regex control characters; i.e. [ with \[
 					// this could be moved out into a plain JS function
@@ -766,7 +814,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 
 					// split by *
 					// escape regex chars of the parts
-					// join  by .* 
+					// join  by .*
 					// "."  matches single character, except newline or line terminator
 					// ".*" matches any string containing zero or more characters
 					rule = rule.split("*").map(escapeRegex).join(".*");
@@ -776,7 +824,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 					rule = "^" + rule + "$"
 
 					if (wildcardselectDebug) {
-						console.log("     testing rule '" + rule + "' on str '" + str + "'");						
+						console.log("     testing rule '" + rule + "' on str '" + str + "'");
 					}
 
 					// create a regular expression object for matching string
@@ -890,6 +938,34 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 	}
 	fmt.Fprint(w, "</div><!-- </div class='struc2frm'... -->\n")
 
+	if inputWithFocus != "" {
+		fmt.Fprintf(w, `
+			<script type="text/javascript">
+
+			var frm;
+			var forms = document.getElementsByName("%v");
+			for (var i1 = 0; i1 < forms.length; i1++) {
+				if (forms[i1].tagName == "FORM") {
+					frm = forms[i1];
+					break;
+				}
+			}
+
+			var elements = frm.elements;
+			for (var i1 = 0; i1 < elements.length; i1++) {
+				var name = elements[i1].getAttribute("name");
+				if ( name === "%v") {
+					if (elements[i1].type !== "hidden") {
+						console.log("element to set focus", name);
+						elements[i1].focus();
+					}
+				}
+			}
+
+			</script>
+			`, s2f.Name, inputWithFocus)
+	}
+
 	// global replacements
 	ret := strings.ReplaceAll(w.String(), "&comma;", ",")
 
@@ -968,8 +1044,8 @@ func decode(r *http.Request, ptr2Struct interface{}) (populated bool, err error)
 
 	// this belongs outside of the library into application side
 	if false {
-		if vld, ok := ptr2Struct.(Validator); ok {
-			valid := vld.Validate()
+		if vldr, ok := ptr2Struct.(Validator); ok {
+			_, valid := vldr.Validate()
 			if !valid {
 				return false, nil
 			}

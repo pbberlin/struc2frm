@@ -8,14 +8,9 @@ import (
 	"strings"
 )
 
-// Validator structs can be rendered as HTML list
-type Validator interface {
-	Validate() bool
-}
-
 // Card creates an HTML list view - instead of an HTML form;
 // TODO: render fieldsets
-func (s2f *s2FT) Card(intf Validator) template.HTML {
+func (s2f *s2FT) Card(intf interface{}) template.HTML {
 
 	v := reflect.ValueOf(intf) // ifVal
 	typeOfS := v.Type()
@@ -90,7 +85,7 @@ func (s2f *s2FT) Card(intf Validator) template.HTML {
 		// Replace <select...> keys with values
 		idx := len(values) - 1
 		if values[idx] != "" {
-			if opts, ok := s2f.SelectOptions[inpName]; ok {
+			if opts, ok := s2f.selectOptions[inpName]; ok {
 				for _, opt := range opts {
 					// log.Printf("For %12v: Comparing %5v to %5v  %5v", inpName, values[idx], opt.Key, opt.Val)
 					if values[idx] == opt.Key {
@@ -120,7 +115,12 @@ func (s2f *s2FT) Card(intf Validator) template.HTML {
 
 	// fieldsetOpen := false
 
-	if intf.Validate() {
+	valid := true // default
+	errs := map[string]string{}
+	if vldr, ok := intf.(Validator); ok { // if validator interface is implemented...
+		errs, valid = vldr.Validate() // ...check for validity
+	}
+	if valid {
 		for idx, label := range labels {
 			if strings.HasPrefix(label, "Separator") {
 				fmt.Fprint(w, "\t<div class='separator'></div>\n")
@@ -136,7 +136,10 @@ func (s2f *s2FT) Card(intf Validator) template.HTML {
 		}
 	} else {
 		fmt.Fprintf(w, "\t<li>\n")
-		fmt.Fprintf(w, "\t  Struct is incomplete: %v\n", statusMsg)
+		fmt.Fprintf(w, "\t  Struct content is invalid: %v\n", statusMsg)
+		for fld, msg := range errs {
+			fmt.Fprintf(w, "\t  Field: %v - %v\n", fld, msg)
+		}
 		fmt.Fprintf(w, "\t</li>\n")
 	}
 

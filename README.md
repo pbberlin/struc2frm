@@ -11,10 +11,9 @@
 
 
 
-* Package struc2frm converts or transforms a  
-golang `struct type` into an `HTML input form`.
+* Package struc2frm converts a golang `struct type` into an `HTML input form`.
 
-* All your admin and backend forms generated directly from golang structs.
+* All your backend forms generated directly from golang structs.
 
 * HTML input field info is taken from the `form` struct tag.
 
@@ -44,24 +43,30 @@ type entryForm struct {
     HashKey     string   `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
     Groups      int      `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
     Items       string   `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='4',maxlength='4000',label='Textarea of<br>line items',title='add times - delimited by newline (enter)'"`
-    Items2      []string `json:"items2,omitempty"        form:"subtype='select',size='3',multiple='true',label='Multi<br>select<br>dropdown'"`
+    Items2      []string `json:"items2,omitempty"        form:"subtype='select',size='3',multiple='true',label='Multi<br>select<br>dropdown',autofocus='true'"`
     Group01     string   `json:"group01,omitempty"       form:"subtype='fieldset'"`
     Date        string   `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
     Time        string   `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
     Group02     string   `json:"group02,omitempty"       form:"subtype='fieldset'"`
     DateLayout  string   `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
-    CheckThis   bool     `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
+    CheckThis   bool     `json:"check_this,omitempty"    form:"suffix='without consequence'"`
 
     // Requires distinct way of form parsing
     // Upload     []byte `json:"upload,omitempty"       form:"accesskey='u',accept='.xlsx'"`
 }
 
 // Validate checks whether form entries as a whole are "submittable";
-// more than 'populated'
-func (frm entryForm) Validate() bool {
+// more than just 'populated'
+// Validate generates error messages
+func (frm entryForm) Validate() (map[string]string, bool) {
+    errs := map[string]string{}
     g1 := frm.Department != ""
-    g2 := frm.CheckThis && frm.Items != ""
-    return g1 && g2
+    g2 := frm.CheckThis
+    if !frm.CheckThis {
+        errs["check_this"] = "You need to comply"
+    }
+    g3 := frm.Items != ""
+    return errs, g1 && g2 && g3
 }
 
 
@@ -91,18 +96,42 @@ if len(frm.Items2) == 0 {
 }
 
 if populated {
-    valid := frm.Validate()
+    errs, valid := frm.Validate()
+
     if !valid {
-        // business logic
+        s2f.AddErrors(errs) // add errors only for a populated form
+        // render to HTML for user input / error correction
+        fmt.Fprint(w, s2f.Form(frm))
+    } else {
+        // further processing
     }
-    // more business logic
 }
 
-// render to HTML
-fmt.Fprint(w, s2f.Form(frm))
 ```
 
-## Usage - specific field types
+## Global options
+
+* `ShowHeadline` - show a headline derived from struct name; default `false`.
+
+* `FormTag` - suppress the surrounding `<form ...> ... </form>` if you want to compose a form from multiple structs.
+
+* `Name` - form name attribute; default `frmMain`
+
+* `Method` - GET or POST; default `POST`
+
+* `Salt` and `FormTimeout` - parameters to generate CSRF token
+
+* `FocusFirstError` - focus on inputs with errors; default `true`
+
+* `ForceSubmit` - show submit button despite `onchange=form.submit()`; default `false`
+
+* `Indent`, `IndentAddenum`, `VerticalSpacer` - change indentation in `px`; vertical spacing in `rem`
+
+* `CSS` - default CSS classes for reasonable appearance.  
+Incorporate similar rules into your application style sheet,  
+and set to empty string.
+
+## Attributes for field types
 
 * Use `float64` or `int` to create number inputs - with attributes `min=1,max=100,step=2`.  
 Notice that `step=2` defines maximum precision; uneven numbers become invalid.  
@@ -173,13 +202,80 @@ if len(frm.Items2) == 0 {
 }
 ```
 
-
 ## Submit button
 
 If your form only has `select` inputs with `onchange='this.form.submit()'`  
 then no submit button is shown.
 
 This can be overridden by setting `struc2frm.New().ShowSubmit` to true.
+
+## General field attributes
+
+* Use `form:"-"` to exclude fields from being rendered  
+neither in form view nor in card view
+
+* Every field can have an attribute `label=...`,  
+appearing before the input element,  
+if not specified, json:"[name]..." is labelized and used
+
+* Every field can have an attribute `suffix=...`,  
+appearing after the input element
+
+* Every field can have an attribute `title=...`  
+for mouse-over tooltips
+
+* Values inside of `label='...'`, `suffix='...'`, `title='...'`, `placeholder='...'`, `pattern='...'`  
+need `&comma;` instead  of `,`
+
+* Every field  can have an attribute `accesskey='t'`  
+Accesskeys are not put into the label, but into the input tag
+
+* Every field  can have an attribute `nobreak='true'`  
+so that the next input remains on the same line
+
+* Every field  can have an attribute `autofocus='true'`  
+setting the keyboard focus to this input.  
+Use this only once per form.  
+`autofocus='true'` is overwritten by `FocusFirstError==true`; see below.
+
+### Field attributes for mobile phones
+
+* `inputmode="numeric"` opens the numbers keyboard on mobile phones
+
+* `autocapitalize=off` switches off first letter upper casing
+
+## Validation and errors
+
+The `Validator` interface is non mandatory helper interface for form structs.
+
+```golang
+type Validator interface {
+    Validate() (map[string]string, bool)
+}
+```
+
+It returns error messages suitable for `s2f.AddErrors()`.
+
+```golang
+if populated {
+    errs, valid := frm.Validate()
+    if !valid {
+        s2f.AddErrors(errs) // add errors only for a populated form
+        // render to HTML for user input / error correction
+        fmt.Fprint(w, s2f.Form(frm))
+```
+
+A _valid_ form struct enables further processing.
+
+```golang
+    } else {
+        // further processing
+    }
+```
+
+* Set `FocusFirstError=true` to focut the first input having an error message.
+
+* This overrides `autofocus='true'`.
 
 ## File upload
 
@@ -241,36 +337,6 @@ fmt.Fprintf(
 
 See `handler-file-upload_test.go` on how to programmatically POST a file and key-values.
 
-## General field attributes
-
-* Use `form:"-"` to exclude fields from being rendered  
-neither in form view nor in card view
-
-* Every field can have an attribute `label=...`,  
-appearing before the input element,  
-if not specified, json:"[name]..." is labelized and used
-
-* Every field can have an attribute `suffix=...`,  
-appearing after the input element
-
-* Every field can have an attribute `title=...`  
-for mouse-over tooltips
-
-* Values inside of `label='...'`, `suffix='...'`, `title='...'`, `placeholder='...'`, `pattern='...'`  
-need `&comma;` instead  of `,`
-
-* Every field  can have an attribute `accesskey='t'`  
-Accesskeys are not put into the label, but into the input tag
-
-* Every field  can have an attribute `nobreak='true'`  
-so that the next input remains on the same line
-
-### Field attributes for mobile phones
-
-* `inputmode="numeric"` opens the numbers keyboard on mobile phones
-
-* `autocapitalize=off` switches off first letter upper casing
-
 ## CSS Styling
 
 * Styling is done via CSS selectors  
@@ -326,13 +392,11 @@ mostly to have syntax highlighting while editing it.
 
 ## TODO
 
-* Support for focus() some input element  
-
-* Support for focus() on first input having an error
-
 * ListView() with labels from `form` tag and values from SetOptions().
 
-* Can we use `0x2C` instead of `,` ?
+* Can we use `0x2C` instead of `&comma;` ?
 
 * Low Prio: Add field type `option group`  
 meanwhile use `select / dropdown`
+
+* Low Prio: Move JavaScript code for multiselect into a JS file

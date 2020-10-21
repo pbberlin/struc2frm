@@ -98,7 +98,7 @@ Rtoynbsonnos, Tars</textarea>
 	<div style='height:0.6rem'>&nbsp;</div>
 	<label for='items2' style='vertical-align: top;' >Multi<br>select<br>dropdown</label>
 	<div class='select-arrow'>
-	<select name='items2' id='items2'  subtype='select' size='3' multiple='true' />
+	<select name='items2' id='items2'  subtype='select' size='3' multiple autofocus />
 		<option value='anton' selected >Anton</option>
 		<option value='berta'          >Berta</option>
 		<option value='caesar' selected >Caesar</option>
@@ -117,9 +117,10 @@ Rtoynbsonnos, Tars</textarea>
 	<label for='date_layout' style='' >Layou<u>t</u> of the date</label>
 	<input type='text' name='date_layout' id='date_layout' value=''  accesskey='t' maxlength='16' size='16' pattern='[0-9\.\-/]{2,10}' placeholder='2006/01/02 15:04' />
 	<div style='height:0.6rem'>&nbsp;</div>
-	<label for='checkthis' style='' >Checkthis</label>
-	<input type='checkbox' name='checkthis' id='checkthis' value='true'   />
-	<input type='hidden' name='checkthis' value='false' /><span class='postlabel' >without consequence</span>
+	<p class='error-block' >You need to comply</p>
+	<label for='check_this' style='' >Check this</label>
+	<input type='checkbox' name='check_this' id='check_this' value='true'   />
+	<input type='hidden' name='check_this' value='false' /><span class='postlabel' >without consequence</span>
 	<div style='height:0.6rem'>&nbsp;</div>
 </fieldset>
 	<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button>

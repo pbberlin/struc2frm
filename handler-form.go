@@ -35,14 +35,14 @@ type entryForm struct {
 	HashKey     string   `json:"hashkey,omitempty"       form:"maxlength='16',size='16',autocapitalize='off',suffix='salt&comma; changes randomness'"` // the &comma; instead of , prevents wrong parsing
 	Groups      int      `json:"groups,omitempty"        form:"min=1,max='100',maxlength='3',size='3'"`
 	Items       string   `json:"items,omitempty"         form:"subtype='textarea',cols='22',rows='4',maxlength='4000',label='Textarea of<br>line items',title='add times - delimited by newline (enter)'"`
-	Items2      []string `json:"items2,omitempty"        form:"subtype='select',size='3',multiple='true',label='Multi<br>select<br>dropdown'"`
+	Items2      []string `json:"items2,omitempty"        form:"subtype='select',size='3',multiple='true',label='Multi<br>select<br>dropdown',autofocus='true'"`
 	Group01     string   `json:"group01,omitempty"       form:"subtype='fieldset'"`
 	Date        string   `json:"date,omitempty"          form:"subtype='date',nobreak=true,min='1989-10-29',max='2030-10-29'"`
 	Time        string   `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
 	Group02     string   `json:"group02,omitempty"       form:"subtype='fieldset'"`
 	// stackoverflow.com/questions/399078 - inside character classes escape ^-]\
 	DateLayout string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
-	CheckThis  bool   `json:"checkthis,omitempty"     form:"suffix='without consequence'"`
+	CheckThis  bool   `json:"check_this,omitempty"    form:"suffix='without consequence'"`
 
 	// Requires distinct way of form parsing
 	// Upload     []byte `json:"upload,omitempty"       form:"accesskey='u',accept='.xlsx'"`
@@ -52,11 +52,17 @@ type entryForm struct {
 }
 
 // Validate checks whether form entries as a whole are "submittable";
-// more than 'populated'
-func (frm entryForm) Validate() bool {
+// more than just 'populated';
+// Validate generates error messages
+func (frm entryForm) Validate() (map[string]string, bool) {
+	errs := map[string]string{}
 	g1 := frm.Department != ""
-	g2 := frm.CheckThis && frm.Items != ""
-	return g1 && g2
+	g2 := frm.CheckThis
+	if !frm.CheckThis {
+		errs["check_this"] = "You need to comply"
+	}
+	g3 := frm.Items != ""
+	return errs, g1 && g2 && g3
 }
 
 // FormH is an example http handler func
@@ -66,8 +72,9 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 
 	s2f := New()
 	s2f.ShowHeadline = true
-	s2f.AddOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
-	s2f.AddOptions("items2", []string{"anton", "berta", "caesar", "dora"}, []string{"Anton", "Berta", "Caesar", "Dora"})
+	s2f.FocusFirstError = true
+	s2f.SetOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
+	s2f.SetOptions("items2", []string{"anton", "berta", "caesar", "dora"}, []string{"Anton", "Berta", "Caesar", "Dora"})
 	// s2f.Method = "GET"
 
 	// init values - non-multiple
@@ -78,6 +85,7 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 		Time:    time.Now().Format("15:04"),
 	}
 
+	// pulling in values from http request
 	populated, err := Decode(req, &frm)
 	if populated && err != nil {
 		s2f.AddError("global", fmt.Sprintf("cannot decode form: %v<br>\n <pre>%v</pre>", err, indentedDump(req.Form)))
@@ -106,9 +114,13 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	binsF := "" // formatted as html
 	if populated {
 
-		valid := frm.Validate()
+		errs, valid := frm.Validate()
 		if !valid {
-			// more business logic
+			s2f.AddErrors(errs) // add errors only for a populated form
+			// render to HTML for user input / error correction
+			// fmt.Fprint(w, s2f.Form(frm))
+		} else {
+			// further processing
 		}
 
 		salt1 := req.FormValue("hashkey")

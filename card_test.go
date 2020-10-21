@@ -25,10 +25,10 @@ type userDataFormT struct {
 
 // Validate checks whether form entries as a whole are "submittable";
 // implementation is optional
-func (frm userDataFormT) Validate() bool {
+func (frm userDataFormT) Validate() (map[string]string, bool) {
 	g1 := frm.Gender != "" && frm.Decade != "" && frm.Culture != "" && frm.Ownership != ""
 	g2 := frm.Buying && frm.Recent != "" || !frm.Buying
-	return g1 && g2
+	return nil, g1 && g2
 }
 
 func TestCardView(t *testing.T) {
@@ -46,15 +46,15 @@ func TestCardView(t *testing.T) {
 
 	s2f.SkipEmpty = true
 
-	s2f.AddOptions("gender", []string{"", "f", "m", "o"},
+	s2f.SetOptions("gender", []string{"", "f", "m", "o"},
 		[]string{"Please choose", "female", "male", "third"})
-	s2f.AddOptions("decade", []string{"", "before1960", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s-"},
+	s2f.SetOptions("decade", []string{"", "before1960", "1960s", "1970s", "1980s", "1990s", "2000s", "2010s-"},
 		[]string{"Please choose", "before 1960", "1960-69", "1970-79", "1980-89", "1990-99", "2000-09", "2010-"})
-	s2f.AddOptions("culture", []string{"", "european", "near-east", "asian", "indian", "african"},
+	s2f.SetOptions("culture", []string{"", "european", "near-east", "asian", "indian", "african"},
 		[]string{"Please choose", "European", "Near East", "Asian", "Indian", "African"})
-	s2f.AddOptions("ownership", []string{"", "owner", "renter"},
+	s2f.SetOptions("ownership", []string{"", "owner", "renter"},
 		[]string{"Please choose", "Homeowner", "Renter"})
-	s2f.AddOptions("recent", []string{"", "2020s", "2010s", "2000s", "1990s", "1980s", "before1980"},
+	s2f.SetOptions("recent", []string{"", "2020s", "2010s", "2000s", "1990s", "1980s", "before1980"},
 		[]string{"Please choose", "2020s", "2010s", "2000s", "1990s", "1980s", "before"})
 
 	got := s2f.Card(ud)
