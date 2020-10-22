@@ -939,6 +939,9 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 	fmt.Fprint(w, "</div><!-- </div class='struc2frm'... -->\n")
 
 	if inputWithFocus != "" {
+		// finding form by name - setting focus by name;
+		// this repeats or overrides the autofocus mechanism;
+		// is it always last in timeline?
 		fmt.Fprintf(w, `
 			<script type="text/javascript">
 
@@ -956,8 +959,9 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 				var name = elements[i1].getAttribute("name");
 				if ( name === "%v") {
 					if (elements[i1].type !== "hidden") {
-						console.log("element to set focus", name);
+						// console.log("element to set focus", name);
 						elements[i1].focus();
+						break;
 					}
 				}
 			}

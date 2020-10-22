@@ -235,7 +235,11 @@ div.struc2frm select[name="department"] {
 }
 
 .error-block {
-    color: var(--clr-err);
+    margin:      0.2rem;
+    margin-top:  0.4rem;
+    margin-left: 1.6rem;
+    font-size: 120%;
+    color: var(--clr-err, #d22);
 }
 
 div.wildcardselect {

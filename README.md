@@ -91,8 +91,10 @@ if populated && err != nil {
 }
 
 // init values - multiple
-if len(frm.Items2) == 0 {
-    frm.Items2 = []string{"berta", "dora"}
+if !populated {
+    if len(frm.Items2) == 0 {
+        frm.Items2 = []string{"berta", "dora"}
+    }
 }
 
 if populated {
@@ -103,7 +105,7 @@ if populated {
         // render to HTML for user input / error correction
         fmt.Fprint(w, s2f.Form(frm))
     } else {
-        // further processing
+        // further processing with valid form data
     }
 }
 
@@ -273,7 +275,7 @@ A _valid_ form struct enables further processing.
     }
 ```
 
-* Set `FocusFirstError=true` to focut the first input having an error message.
+* Keep `FocusFirstError=true` to focus the first input having an error message.
 
 * This overrides `autofocus='true'`.
 

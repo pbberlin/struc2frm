@@ -93,8 +93,10 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// init values - multiple
-	if len(frm.Items2) == 0 {
-		frm.Items2 = []string{"berta", "dora"}
+	if !populated {
+		if len(frm.Items2) == 0 {
+			frm.Items2 = []string{"berta", "dora"}
+		}
 	}
 
 	if req.Form.Get("debug") != "" {
