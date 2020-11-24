@@ -8,9 +8,6 @@
 [![Travis Build](https://travis-ci.org/pbberlin/struc2frm.svg?branch=master)](https://travis-ci.org/pbberlin/struc2frm) 
 [![codecov](https://codecov.io/gh/pbberlin/struc2frm/branch/master/graph/badge.svg)](https://codecov.io/gh/pbberlin/struc2frm) 
 
-
-
-
 * Package struc2frm converts a golang `struct type` into an `HTML input form`.
 
 * All your backend forms generated directly from golang structs.
@@ -397,6 +394,8 @@ HTML             |                1   |           6      |        1    |        
 mostly to have syntax highlighting while editing it.
 
 ## TODO
+
+* Type text/explanation without input
 
 * ListView() with labels from `form` tag and values from SetOptions().
 

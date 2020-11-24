@@ -14,7 +14,7 @@ func (s2f *s2FT) Card(intf interface{}) template.HTML {
 
 	v := reflect.ValueOf(intf) // ifVal
 	typeOfS := v.Type()
-	// v = v.Elem() // de reference
+	// v = v.Elem()            // dereference
 
 	if v.Kind().String() != "struct" {
 		return template.HTML(fmt.Sprintf("struct2form.Card() - arg1 must be struct - is %v", v.Kind()))
@@ -75,11 +75,10 @@ func (s2f *s2FT) Card(intf interface{}) template.HTML {
 		}
 
 		labels = append(labels, frmLabel)
-		if valStr, ok := val.(string); ok {
-			// values = append(values, strings.Title(valStr))
-			values = append(values, valStr)
-		} else if valBool, ok := val.(bool); ok {
+		if valBool, ok := val.(bool); ok {
 			values = append(values, fmt.Sprintf("%v", valBool))
+		} else {
+			values = append(values, fmt.Sprintf("%v", val)) // covers string, float, int ...
 		}
 
 		// Replace <select...> keys with values
