@@ -553,7 +553,7 @@ func ExtractUploadedFile(r *http.Request, names ...string) (bts []byte, fname st
 }
 
 // Form takes a struct instance
-// and turns it into an Form form.
+// and turns it into an HTML form.
 func (s2f *s2FT) Form(intf interface{}) template.HTML {
 
 	v := reflect.ValueOf(intf) // interface val
@@ -561,7 +561,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 	// v = v.Elem() // de reference
 
 	if v.Kind().String() != "struct" {
-		return template.HTML(fmt.Sprintf("struct2form.HTML() - arg1 must be struct - is %v", v.Kind()))
+		return template.HTML(fmt.Sprintf("struct2form.Form() - arg1 must be struct - is %v", v.Kind()))
 	}
 
 	w := &bytes.Buffer{}
@@ -655,11 +655,11 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		}
 
 		if strings.Contains(attrs, ", ") || strings.Contains(attrs, ", ") {
-			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Form() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fn))
 		}
 
 		if commaInsideQuotes(attrs) {
-			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Form() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fn))
 		}
 
 		if attrs == "-" {

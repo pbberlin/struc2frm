@@ -110,19 +110,20 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	}
 	frm.Items = strings.Join(itemGroups[dept], "\n")
 
+	errs, valid := frm.Validate()
+
 	//
 	// business logic: reshuffling...
 	bins := [][]string{}
 	binsF := "" // formatted as html
+
 	if populated {
 
-		errs, valid := frm.Validate()
 		if !valid {
 			s2f.AddErrors(errs) // add errors only for a populated form
-			// render to HTML for user input / error correction
-			// fmt.Fprint(w, s2f.Form(frm))
 		} else {
 			// further processing
+			// see below
 		}
 
 		salt1 := req.FormValue("hashkey")
@@ -166,6 +167,11 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 			binsF += "</div>\n\n"
 		}
 
+	}
+
+	// render to HTML for user input / error correction
+	if !valid {
+		// fmt.Fprint(w, s2f.Form(frm))
 	}
 
 	fmt.Fprintf(

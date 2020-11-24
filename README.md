@@ -97,17 +97,21 @@ if !populated {
     }
 }
 
-if populated {
-    errs, valid := frm.Validate()
+errs, valid := frm.Validate()
 
+if populated {
     if !valid {
         s2f.AddErrors(errs) // add errors only for a populated form
-        // render to HTML for user input / error correction
-        fmt.Fprint(w, s2f.Form(frm))
     } else {
         // further processing with valid form data
     }
 }
+
+if !valid {
+    // render to HTML for user input / error correction
+    fmt.Fprint(w, s2f.Form(frm))
+}
+
 
 ```
 

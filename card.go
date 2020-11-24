@@ -44,11 +44,11 @@ func (s2f *s2FT) Card(intf interface{}) template.HTML {
 		}
 
 		if strings.Contains(attrs, ", ") || strings.Contains(attrs, ", ") {
-			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Card() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fn))
 		}
 
 		if commaInsideQuotes(attrs) {
-			return template.HTML(fmt.Sprintf("struct2form.HTML() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Card() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fn))
 		}
 
 		if attrs == "-" {
