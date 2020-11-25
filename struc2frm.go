@@ -48,11 +48,11 @@ func init() {
 	bts, err := ioutil.ReadFile(sourceDirPath)
 	if err != nil {
 		log.Printf("Could not load default CSS: %v", err)
-		defaultCSS = "<style>\n" + staticDefaultCSS + "\n</style>"
+		defaultCSS = staticDefaultCSS // <style> embedding added while rendering
 		log.Printf("Loaded %v chars from static.go instead", len(staticDefaultCSS))
 		return
 	}
-	defaultCSS = "<style>\n" + string(bts) + "\n</style>"
+	defaultCSS = string(bts) // <style> embedding added while rendering
 }
 
 type option struct {
@@ -181,7 +181,10 @@ func commaInsideQuotes(s string) bool {
 
 func (s2f *s2FT) RenderCSS(w io.Writer) {
 
-	fmt.Fprint(w, s2f.CSS) // generic CSS
+	// generic CSS
+	fmt.Fprint(w, "\n<style>\n")
+	fmt.Fprint(w, s2f.CSS)
+	fmt.Fprint(w, "\n</style>\n")
 
 	if s2f.Indent == 0 { // using additional generic specs - for instance with media query
 		return
@@ -638,28 +641,28 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 	// Render fields
 	for i := 0; i < v.NumField(); i++ {
 
-		fn := typeOfS.Field(i).Name // i.e. Name, Birthdate
-
-		if fn[0:1] != strings.ToUpper(fn[0:1]) {
+		// struct field name; i.e. Name, Birthdate
+		fn := typeOfS.Field(i).Name
+		if fn[0:1] != strings.ToUpper(fn[0:1]) { // only used to find unexported fields; otherwise json tag name is used
 			continue // skip unexported
 		}
 
 		inpName := typeOfS.Field(i).Tag.Get("json") // i.e. date_layout
 		inpName = strings.Replace(inpName, ",omitempty", "", -1)
-		frmLabel := labelize(inpName)
+		inpLabel := labelize(inpName)
 
 		attrs := typeOfS.Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28'"
 
 		if structTag(attrs, "label") != "" {
-			frmLabel = structTag(attrs, "label")
+			inpLabel = structTag(attrs, "label")
 		}
 
 		if strings.Contains(attrs, ", ") || strings.Contains(attrs, ", ") {
-			return template.HTML(fmt.Sprintf("struct2form.Form() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Form() - field %v: tag 'form' cannot contain ', ' or ' ,' ", inpName))
 		}
 
 		if commaInsideQuotes(attrs) {
-			return template.HTML(fmt.Sprintf("struct2form.Form() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Form() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", inpName))
 		}
 
 		if attrs == "-" {
@@ -711,7 +714,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			// but CanSet() yields false;
 			// better setting init values *conditionally* *after* parsing
 			if valSlice.CanSet() && false {
-				log.Printf("%v -  %v - %v - trying slice reset", fn, tp, val.Type())
+				log.Printf("%v -  %v - %v - trying slice reset", inpName, tp, val.Type())
 				valueSlice := reflect.MakeSlice(val.Type(), 0, 5)
 				valueSlice.Set(valueSlice)
 			}
@@ -736,7 +739,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			toInputType(tp, attrs) != "fieldset" {
 			fmt.Fprintf(w,
 				"\t<label for='%s' style='%v' >%v</label>\n", // no whitespace - input immediately afterwards
-				inpName, specialVAlign, accessKeyify(frmLabel, attrs),
+				inpName, specialVAlign, accessKeyify(inpLabel, attrs),
 			)
 		}
 
@@ -888,13 +891,19 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			}
 
 		case "separator":
-			fmt.Fprint(w, "\t<div class='separator'></div>")
+			// when separator has an explicit label value
+			if structTag(attrs, "label") != "" {
+				fmt.Fprintf(w, "\t<div class='struc2frm-static'>%v</div>", inpLabel)
+			} else {
+				fmt.Fprint(w, "\t<div  class='separator'></div>")
+			}
+
 		case "fieldset":
 			if fieldsetOpen {
 				fmt.Fprint(w, "</fieldset>\n")
 			}
 			fmt.Fprint(w, "<fieldset>")
-			fmt.Fprintf(w, "\t<legend>&nbsp;%v&nbsp;</legend>", frmLabel)
+			fmt.Fprintf(w, "\t<legend>&nbsp;%v&nbsp;</legend>", inpLabel)
 			fieldsetOpen = true
 		default:
 			// plain vanilla input

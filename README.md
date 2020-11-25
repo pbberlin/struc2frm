@@ -161,6 +161,8 @@ Attribute `size` determines height for select/dropdown elements.
 These are `dummmy` fields for formatting only
 
 * Every `string` field with subtype `separator` is rendered into a horizontal line
+  * If the struct tag `form` has as `label`, then its contents are rendered.  
+  Serving as static text paragraph.
 
 * Every `string` field with subtype `fieldset` is rendered into grouping box with label
 
@@ -394,8 +396,6 @@ HTML             |                1   |           6      |        1    |        
 mostly to have syntax highlighting while editing it.
 
 ## TODO
-
-* Type text/explanation without input
 
 * ListView() with labels from `form` tag and values from SetOptions().
 
