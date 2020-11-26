@@ -81,7 +81,7 @@ func test(t *testing.T, method string) {
 	</select>
 	</div>
 	<div style='height:0.6rem'>&nbsp;</div>
-	<div class='separator'></div>
+	<div  class='separator'></div>
 	<label for='hashkey' style='' >Hashkey</label>
 	<input type='text' name='hashkey' id='hashkey' value='%v'  maxlength='16' size='16' autocapitalize='off' /><span class='postlabel' >salt, changes randomness</span>
 	<div style='height:0.6rem'>&nbsp;</div>
