@@ -38,7 +38,7 @@ const staticTplMainHTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-const staticDefaultCSS  = `
+const staticDefaultCSS = `
 div.struc2frm {
     padding: 4px;
     margin:  4px;
@@ -71,10 +71,10 @@ div.struc2frm  span.postlabel {
     vertical-align: middle;
     font-size: 90%;
     position: relative;
-    top: -3px;
+    top: -0.15em;
     margin-left: 4px;
-    max-width: 40px;
     line-height: 90%;
+    /* max-width: 40px; */
 }
 
 div.struc2frm  div.separator {
@@ -166,6 +166,14 @@ input[type="number"] {
 	color: var(--clr-pri);
 	border-left:	 2px solid var(--clr-pri);
 	border-bottom: 2px solid var(--clr-pri);
+}
+
+
+div.struc2frm  .card-label {
+    display: inline-block; 
+    vertical-align: top;
+    
+    width: 40%;
 }
 
 

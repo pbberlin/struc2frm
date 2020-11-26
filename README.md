@@ -397,8 +397,6 @@ mostly to have syntax highlighting while editing it.
 
 ## TODO
 
-* ListView() with labels from `form` tag and values from SetOptions().
-
 * Can we use `0x2C` instead of `&comma;` ?
 
 * Low Prio: Add field type `option group`  

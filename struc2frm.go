@@ -61,6 +61,12 @@ type option struct {
 
 type options []option
 
+// CardViewOptions governs the display of the rendering of Card()
+type CardViewOptions struct {
+	SkipEmpty bool // Fields with value "" are not rendered
+	SuffixPos int  // 0 - no suffix rendered, 1 - suffix after label, 2 - suffix after value
+}
+
 // s2FT contains formatting options for converting a struct into a HTML form
 type s2FT struct {
 	ShowHeadline bool   // show headline derived from struct name
@@ -81,12 +87,10 @@ type s2FT struct {
 
 	CSS string // general formatting - provided defaults can be replaced
 
-	// Card View options
-	SkipEmpty bool // Fields with value "" are not rendered
-
 	selectOptions map[string]options // select inputs get their options from here
 	errors        map[string]string  // validation errors by json name of input
 
+	CardViewOptions
 }
 
 var addressMAC = ""

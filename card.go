@@ -27,28 +27,28 @@ func (s2f *s2FT) Card(intf interface{}) template.HTML {
 
 	for i := 0; i < v.NumField(); i++ {
 
-		fn := typeOfS.Field(i).Name // i.e. Name, Birthdate
-
-		if fn[0:1] != strings.ToUpper(fn[0:1]) {
+		// struct field name; i.e. Name, Birthdate
+		fn := typeOfS.Field(i).Name
+		if fn[0:1] != strings.ToUpper(fn[0:1]) { // only used to find unexported fields; otherwise json tag name is used
 			continue // skip unexported
 		}
 
 		inpName := typeOfS.Field(i).Tag.Get("json") // i.e. date_layout
 		inpName = strings.Replace(inpName, ",omitempty", "", -1)
-		frmLabel := labelize(inpName)
+		inpLabel := labelize(inpName)
 
 		attrs := typeOfS.Field(i).Tag.Get("form") // i.e. form:"maxlength='42',size='28',suffix='optional'"
 
 		if structTag(attrs, "label") != "" {
-			frmLabel = structTag(attrs, "label")
+			inpLabel = structTag(attrs, "label")
 		}
 
 		if strings.Contains(attrs, ", ") || strings.Contains(attrs, ", ") {
-			return template.HTML(fmt.Sprintf("struct2form.Card() - field %v: tag 'form' cannot contain ', ' or ' ,' ", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Card() - field %v: tag 'form' cannot contain ', ' or ' ,' ", inpName))
 		}
 
 		if commaInsideQuotes(attrs) {
-			return template.HTML(fmt.Sprintf("struct2form.Card() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", fn))
+			return template.HTML(fmt.Sprintf("struct2form.Card() - field %v: tag 'form' - use &comma; instead of ',' inside of single quotes values", inpName))
 		}
 
 		if attrs == "-" {
@@ -68,13 +68,13 @@ func (s2f *s2FT) Card(intf interface{}) template.HTML {
 
 		val := v.Field(i).Interface()
 
-		if s2f.SkipEmpty {
-			if val == "" && !strings.HasPrefix(fn, "Separator") {
+		if fmt.Sprint(val) == "" && s2f.SkipEmpty {
+			if !strings.HasPrefix(fn, "Separator") { // separators should be rendered, though they have no value
 				continue
 			}
 		}
 
-		labels = append(labels, frmLabel)
+		labels = append(labels, inpLabel)
 		if valBool, ok := val.(bool); ok {
 			values = append(values, fmt.Sprintf("%v", valBool))
 		} else {
@@ -126,11 +126,23 @@ func (s2f *s2FT) Card(intf interface{}) template.HTML {
 				continue
 			}
 			fmt.Fprintf(w, "\t<li>\n")
-			fmt.Fprintf(w, "\t<span style='display: inline-block; width: 40%%;' >%v:</span>", label)
-			fmt.Fprintf(w, "  %v  \n", values[idx])
-			if sfxs[idx] != "" {
-				fmt.Fprintf(w, "<span class='postlabel' >%s</span>", sfxs[idx])
+
+			if s2f.SuffixPos == 1 && sfxs[idx] != "" {
+				fmt.Fprintf(w, `	<div class='card-label' >%v:
+					<br><span class='postlabel' >(%s)</span>
+				</div>`, label, sfxs[idx])
+			} else {
+				fmt.Fprintf(w, `	<div class='card-label' >%v:</div>`, label)
 			}
+
+			fmt.Fprintf(w, "  %v  \n", values[idx])
+
+			if s2f.SuffixPos == 2 {
+				if sfxs[idx] != "" {
+					fmt.Fprintf(w, "<span class='postlabel' >%s</span>", sfxs[idx])
+				}
+			}
+
 			fmt.Fprintf(w, "\t</li>\n")
 		}
 	} else {

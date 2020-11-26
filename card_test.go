@@ -43,6 +43,7 @@ func TestCardView(t *testing.T) {
 	}
 
 	s2f := New()
+	s2f.SuffixPos = 1
 
 	s2f.SkipEmpty = true
 
@@ -63,20 +64,22 @@ func TestCardView(t *testing.T) {
 	want := `<div class='struc2frm struc2frm-%v'>
 <ul>
 	<li>
-	<span style='display: inline-block; width: 40%%;' >Gender:</span>  %v  
+	<div class='card-label' >Gender:</div>  %v  
 	</li>
 	<li>
-	<span style='display: inline-block; width: 40%%;' >Decade of birth:</span>  %v  
+	<div class='card-label' >Decade of birth:</div>  %v  
 	</li>
 	<li>
-	<span style='display: inline-block; width: 40%%;' >Cultural background:</span>  %v  
-<span class='postlabel' >as influence on taste</span>	</li>
+	<div class='card-label' >Cultural background:
+					<br><span class='postlabel' >(as influence on taste)</span>
+				</div>  %v  
+	</li>
 	<li>
-	<span style='display: inline-block; width: 40%%;' >Home ownership:</span>  %v  
+	<div class='card-label' >Home ownership:</div>  %v  
 	</li>
 	<div class='separator'></div>
 	<li>
-	<span style='display: inline-block; width: 40%%;' >Home buying experience:</span>  false  
+	<div class='card-label' >Home buying experience:</div>  false  
 	</li>
 </ul>
 </div><!-- </div class='struc2frm'... -->

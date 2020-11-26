@@ -6,23 +6,24 @@ import (
 	"strings"
 )
 
-// CSVLine renders intf to CSV format
-func (s2f *s2FT) CSVLine(intf interface{}) string {
+// CSVLine renders intf into a line of CSV formatted data; not double quotes
+func (s2f *s2FT) CSVLine(intf interface{}, sep string) string {
 
 	v := reflect.ValueOf(intf) // ifVal
 	typeOfS := v.Type()
 	// v = v.Elem()            // dereference
 
 	if v.Kind().String() != "struct" {
-		return fmt.Sprintf("struct2form.Card() - arg1 must be struct - is %v", v.Kind())
+		return fmt.Sprintf("struct2form.CSVLine() - arg1 must be struct - is %v", v.Kind())
 	}
 
 	values := make([]string, 0, v.NumField())
 
 	for i := 0; i < v.NumField(); i++ {
 
-		fn := typeOfS.Field(i).Name // i.e. Name, Birthdate
-		if fn[0:1] != strings.ToUpper(fn[0:1]) {
+		// struct field name; i.e. Name, Birthdate
+		fn := typeOfS.Field(i).Name
+		if fn[0:1] != strings.ToUpper(fn[0:1]) { // only used to find unexported fields; otherwise json tag name is used
 			continue // skip unexported
 		}
 		if strings.HasPrefix(fn, "Separator") {
@@ -39,23 +40,22 @@ func (s2f *s2FT) CSVLine(intf interface{}) string {
 	}
 
 	w := &strings.Builder{}
+	for idx := range values {
+		fmt.Fprintf(w, "%v%v", values[idx], sep)
+	}
 
 	valid := true // default
 	errs := map[string]string{}
 	if vldr, ok := intf.(Validator); ok { // if validator interface is implemented...
 		errs, valid = vldr.Validate() // ...check for validity
 	}
-	if valid {
-		for idx := range values {
-			fmt.Fprintf(w, "%v;", values[idx])
-		}
-		fmt.Fprintf(w, "\n")
-	} else {
-		fmt.Fprintf(w, "Struct content is invalid: ")
+	if !valid {
+		fmt.Fprintf(w, "struct content is invalid, ")
 		for fld, msg := range errs {
-			fmt.Fprintf(w, "\t  Field: %v - %v", fld, msg)
+			fmt.Fprintf(w, "field '%v' has error '%v', ", fld, msg)
 		}
-		fmt.Fprintf(w, "\n")
 	}
+
+	fmt.Fprintf(w, "\n")
 	return w.String()
 }
