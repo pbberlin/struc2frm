@@ -396,7 +396,7 @@ func structTagsToAttrs(tags string) string {
 		t = strings.TrimSpace(t)
 		tl := strings.ToLower(t) // tag lower
 		switch {
-		case strings.HasPrefix(tl, "subtype="): // string - [date,textarea,select]
+		case strings.HasPrefix(tl, "subtype="): // string - [date,textarea,select] - not an HTML attribute; kept for debugging
 			ret += " " + t
 		case strings.HasPrefix(tl, "size="): // visible width of input field
 			ret += " " + t
@@ -435,8 +435,10 @@ func structTagsToAttrs(tags string) string {
 		case strings.HasPrefix(tl, "autofocus"):
 			ret += " " + "autofocus" // only the attribute; no value
 		default:
-			// suffix    is not converted into an attribute
-			// nobreak   is not converted into an attribute
+			// "label="       is not converted into an attribute
+			// "label-width="               ~
+			// "suffix="                    ~
+			// "nobreak="                   ~
 		}
 
 	}
@@ -729,6 +731,11 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 		}
 
+		labelWidth := structTag(attrs, "label-width") // irregular width - overriding CSS style
+		if labelWidth != "" {
+			labelWidth = fmt.Sprintf("width: %v;", labelWidth)
+		}
+
 		// label positioning for tall inputs
 		specialVAlign := ""
 		if toInputType(tp, attrs) == "textarea" {
@@ -742,8 +749,8 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		if toInputType(tp, attrs) != "separator" &&
 			toInputType(tp, attrs) != "fieldset" {
 			fmt.Fprintf(w,
-				"\t<label for='%s' style='%v' >%v</label>\n", // no whitespace - input immediately afterwards
-				inpName, specialVAlign, accessKeyify(inpLabel, attrs),
+				"\t<label for='%s' style='%v%v' >%v</label>\n", // no whitespace - input immediately afterwards
+				inpName, labelWidth, specialVAlign, accessKeyify(inpLabel, attrs),
 			)
 		}
 
