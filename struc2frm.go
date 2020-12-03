@@ -436,7 +436,7 @@ func structTagsToAttrs(tags string) string {
 			ret += " " + "autofocus" // only the attribute; no value
 		default:
 			// "label="       is not converted into an attribute
-			// "label-width="               ~
+			// "labelwidth="                ~
 			// "suffix="                    ~
 			// "nobreak="                   ~
 		}
@@ -731,7 +731,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			fmt.Fprintf(w, "\t<p class='error-block' >%v</p>\n", errMsg)
 		}
 
-		labelWidth := structTag(attrs, "label-width") // irregular width - overriding CSS style
+		labelWidth := structTag(attrs, "labelwidth") // irregular width - overriding CSS style
 		if labelWidth != "" {
 			labelWidth = fmt.Sprintf("width: %v;", labelWidth)
 		}
