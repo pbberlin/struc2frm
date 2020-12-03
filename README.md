@@ -222,7 +222,7 @@ neither in form view nor in card view
 * Every field can have an attribute `label=...`,  
 appearing before the input element,  
 if not specified, json:"[name]..." is labelized and used
-  * `labelwidth` can specify an individual label width in CSS units such as `5px` or `1rem`
+  * `label-style` can specify an individual CSS styles for the label tag
 
 * Every field can have an attribute `suffix=...`,  
 appearing after the input element
