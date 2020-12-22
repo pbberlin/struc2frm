@@ -33,6 +33,12 @@ func main() {
 		mux1.HandleFunc("/"+pfx+"/file-upload/", struc2frm.FileUploadH)
 	}
 
+	mux1.HandleFunc("/card", struc2frm.CardH)
+	if pfx != "" {
+		mux1.HandleFunc("/"+pfx+"/card", struc2frm.CardH)
+		mux1.HandleFunc("/"+pfx+"/card/", struc2frm.CardH)
+	}
+
 	mux4 := http.NewServeMux() // top router for non-middlewared handlers
 	mux4.Handle("/", mux1)
 

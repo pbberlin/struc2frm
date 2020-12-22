@@ -57,11 +57,17 @@ type entryForm struct {
 func (frm entryForm) Validate() (map[string]string, bool) {
 	errs := map[string]string{}
 	g1 := frm.Department != ""
+	if !g1 {
+		errs["department"] = "Missing department"
+	}
 	g2 := frm.CheckThis
-	if !frm.CheckThis {
+	if !g2 {
 		errs["check_this"] = "You need to comply"
 	}
 	g3 := frm.Items != ""
+	if !g3 {
+		errs["items"] = "No items"
+	}
 	return errs, g1 && g2 && g3
 }
 

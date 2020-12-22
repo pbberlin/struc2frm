@@ -962,6 +962,7 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 		fmt.Fprintf(w, `
 			<script type="text/javascript">
 
+			// getting the form object
 			var frm;
 			var forms = document.getElementsByName("%v");
 			for (var i1 = 0; i1 < forms.length; i1++) {
@@ -972,16 +973,29 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			}
 
 			var elements = frm.elements;
+
+			// focus on first *visible* input
+			for (var i1 = 0; i1 < elements.length; i1++) {
+				var name = elements[i1].getAttribute("name");
+				if (elements[i1].type !== "hidden") {
+					// console.log("focus on first visible element ", name);
+					elements[i1].focus();
+					break;
+				}
+			}
+
+			// focus set explicitly - or erroneous input
 			for (var i1 = 0; i1 < elements.length; i1++) {
 				var name = elements[i1].getAttribute("name");
 				if ( name === "%v") {
 					if (elements[i1].type !== "hidden") {
-						// console.log("element to set focus", name);
+						// console.log("focus explicit/error on element ", name);
 						elements[i1].focus();
 						break;
 					}
 				}
 			}
+
 
 			</script>
 			`, s2f.Name, inputWithFocus)

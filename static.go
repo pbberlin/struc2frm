@@ -38,7 +38,7 @@ const staticTplMainHTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-const staticDefaultCSS  = `
+const staticDefaultCSS = `
 div.struc2frm {
     padding: 4px;
     margin:  4px;
@@ -65,6 +65,7 @@ div.struc2frm  label {
     vertical-align: middle;
     margin-top: 1px;
     text-align: right;
+    white-space: pre-wrap;
 }
 div.struc2frm  span.postlabel {
     display: inline-block;
@@ -75,6 +76,7 @@ div.struc2frm  span.postlabel {
     margin-left: 4px;
     line-height: 90%;
     /* max-width: 40px; */
+    white-space: pre-wrap;
 }
 
 div.struc2frm  div.separator {
@@ -260,4 +262,22 @@ div.wildcardselect input {
     padding: 1px;
     margin:  2px;
     width:  2.2rem;
-}`
+}
+
+
+/*
+    in order to limit the width of select-inputs with long labels:
+    stackoverflow.com/questions/2591796
+
+div.struc2frm select {
+    max-width: 99%        !important;
+    xxx-overflow:  hidden !important;
+}
+div.struc2frm option {
+    max-width: 99%        !important;
+    xxx-overflow:  hidden !important;
+}
+
+*/
+
+`
