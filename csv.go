@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// CSVLine renders intf into a line of CSV formatted data; not double quotes
+// CSVLine renders intf into a line of CSV formatted data; no double quotes
 func (s2f *s2FT) CSVLine(intf interface{}, sep string) string {
 
 	v := reflect.ValueOf(intf) // ifVal
@@ -54,6 +54,43 @@ func (s2f *s2FT) CSVLine(intf interface{}, sep string) string {
 		for fld, msg := range errs {
 			fmt.Fprintf(w, "field '%v' has error '%v', ", fld, msg)
 		}
+	}
+
+	fmt.Fprintf(w, "\n")
+	return w.String()
+}
+
+// HeaderRow renders intf field names into a line of CSV formatted data
+func (s2f *s2FT) HeaderRow(intf interface{}, sep string) string {
+
+	v := reflect.ValueOf(intf) // ifVal
+	typeOfS := v.Type()
+	// v = v.Elem()            // dereference
+
+	if v.Kind().String() != "struct" {
+		return fmt.Sprintf("struct2form.CSVLine() - arg1 must be struct - is %v", v.Kind())
+	}
+
+	headers := make([]string, 0, v.NumField())
+
+	for i := 0; i < v.NumField(); i++ {
+
+		// struct field name; i.e. Name, Birthdate
+		fn := typeOfS.Field(i).Name
+		if fn[0:1] != strings.ToUpper(fn[0:1]) { // only used to find unexported fields; otherwise json tag name is used
+			continue // skip unexported
+		}
+		if strings.HasPrefix(fn, "Separator") {
+			continue
+		}
+
+		headers = append(headers, fn)
+	}
+
+	w := &strings.Builder{}
+
+	for idx := range headers {
+		fmt.Fprintf(w, "%v%v", headers[idx], sep)
 	}
 
 	fmt.Fprintf(w, "\n")

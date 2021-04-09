@@ -37,7 +37,7 @@ func FileUploadH(w http.ResponseWriter, req *http.Request) {
 
 	bts, excelFileName, err := ExtractUploadedFile(req)
 	if err != nil {
-		fmt.Fprintf(w, "Cannot extract file from POST form: %v<br>\n", err)
+		s2f.AddError("global", fmt.Sprintf("Cannot extract file from POST form: %v<br>\n", err))
 	}
 
 	fileMsg := ""
