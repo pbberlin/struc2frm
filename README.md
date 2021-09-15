@@ -5,7 +5,7 @@
 ## Golang Struct to HTML Form
 
 [![GoDoc](http://godoc.org/github.com/pbberlin/struc2frm?status.svg)](https://godoc.org/github.com/pbberlin/struc2frm) 
-[![Travis Build](https://travis-ci.org/pbberlin/struc2frm.svg?branch=master)](https://travis-ci.org/pbberlin/struc2frm) 
+[![Travis Build](https://travis-ci.com/pbberlin/struc2frm.svg?branch=master)](https://travis-ci.com/pbberlin/struc2frm) 
 [![codecov](https://codecov.io/gh/pbberlin/struc2frm/branch/master/graph/badge.svg)](https://codecov.io/gh/pbberlin/struc2frm) 
 
 * Package struc2frm converts a golang `struct type` into an `HTML input form`.
