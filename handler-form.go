@@ -41,8 +41,9 @@ type entryForm struct {
 	Time        string   `json:"time,omitempty"          form:"subtype='time',maxlength='12',inputmode='numeric',size='12'"`
 	Group02     string   `json:"group02,omitempty"       form:"subtype='fieldset'"`
 	// stackoverflow.com/questions/399078 - inside character classes escape ^-]\
-	DateLayout string `json:"date_layout,omitempty"   form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
-	CheckThis  bool   `json:"check_this,omitempty"    form:"suffix='without consequence'"`
+	DateLayout string `json:"date_layout,omitempty"      form:"accesskey='t',maxlength='16',size='16',pattern='[0-9\\.\\-/]{2&comma;10}',placeholder='2006/01/02 15:04',label='Layout of the date'"` // 2006-01-02 15:04
+	CheckThis  bool   `json:"check_this,omitempty"       form:"suffix='without consequence'"`
+	Fruit      string `json:"fruit,omitempty"            form:"subtype='radiogroup',suffix='like dropdown'"`
 
 	// Requires distinct way of form parsing
 	// Upload     []byte `json:"upload,omitempty"       form:"accesskey='u',accept='.xlsx'"`
@@ -81,6 +82,7 @@ func FormH(w http.ResponseWriter, req *http.Request) {
 	s2f.FocusFirstError = true
 	s2f.SetOptions("department", []string{"ub", "fm"}, []string{"UB", "FM"})
 	s2f.SetOptions("items2", []string{"anton", "berta", "caesar", "dora"}, []string{"Anton", "Berta", "Caesar", "Dora"})
+	s2f.SetOptions("fruit", []string{"pear", "plum", "peach", "noanswer"}, []string{"Pear", "Plum", "Peach", ""})
 	// s2f.Method = "GET"
 
 	// init values - non-multiple

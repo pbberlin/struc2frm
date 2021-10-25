@@ -213,6 +213,10 @@ if len(frm.Items2) == 0 {
 }
 ```
 
+### radiogroup
+
+Like select but rendered as radio inputs.
+
 ## Submit button
 
 If your form only has `select` inputs with `onchange='this.form.submit()'`  
@@ -406,7 +410,6 @@ mostly to have syntax highlighting while editing it.
 
 * Can we use `0x2C` instead of `&comma;` ?
 
-* Low Prio: Add field type `option group`  
-meanwhile use `select / dropdown`
+* `radiogroup` needs more finesse
 
 * Low Prio: Move JavaScript code for multiselect into a JS file

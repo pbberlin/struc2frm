@@ -38,7 +38,7 @@ const staticTplMainHTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-const staticDefaultCSS  = `
+const staticDefaultCSS = `
 div.struc2frm {
     padding: 4px;
     margin:  4px;
@@ -66,6 +66,10 @@ div.struc2frm  label {
     margin-top: 1px;
     text-align: right;
 }
+div.struc2frm .radio-group  label {
+    min-width: unset;
+}
+
 div.struc2frm  span.postlabel {
     display: inline-block;
     vertical-align: middle;
@@ -115,6 +119,11 @@ div.struc2frm  input[type=submit]
     margin-bottom: 8px;
     border-radius: 6px;
 }
+
+div.struc2frm  input[type="radio"] {
+    margin-right: 2rem;
+}
+
 
 /* Hiding spinners for integers/floats  */
 /* stackoverflow.com/questions/3790935/ */

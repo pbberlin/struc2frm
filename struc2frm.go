@@ -301,6 +301,34 @@ func (opts options) HTML(selecteds []string) string {
 	return w.String()
 }
 
+// rendering <input type='radio' /> tags
+func (opts options) Radio(name string, selecteds []string) string {
+	w := &bytes.Buffer{}
+	for _, o := range opts {
+		checked := ""
+		for _, selected := range selecteds {
+			if o.Key == selected {
+				checked = "checked=\"checked\""
+				// log.Printf("selected %v", o.Key)
+			}
+		}
+
+		// A click on a label for a *radio* does not focus the input; possibly because input name is not unique
+		// Possible remedy stackoverflow.com/questions/13273806/
+		// rejected for its HTML ugliness
+		if o.Val != "" {
+			fmt.Fprintf(w, "\t\t<label for='%v' >%v</label>\n", name, o.Val)
+		}
+
+		fmt.Fprintf(w,
+			"\t\t<input type='radio' name='%v' value='%v' %v />\n",
+			name, o.Key, checked,
+		)
+
+	}
+	return w.String()
+}
+
 /*ValToString converts reflect.Value to string.
 
 go-playground/form.Decode nicely converts all kins of request.Form strings
@@ -347,6 +375,8 @@ func toInputType(t, attrs string) string {
 			return "textarea"
 		case "select":
 			return "select"
+		case "radiogroup":
+			return "radiogroup"
 		}
 		return "text"
 	case "int", "float64", "[]int", "[]float64":
@@ -780,6 +810,16 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 			)
 			fmt.Fprint(w, val)
 			fmt.Fprintf(w, "</textarea>")
+		case "radiogroup":
+			if structTag(attrs, "onchange") == "" {
+				needSubmit = true // select without auto submit => needs submit button
+			}
+			fmt.Fprint(w, "\t<div class='select-arrow'>\n")
+			fmt.Fprint(w, "\t<div class='radio-group'>\n")
+			fmt.Fprint(w, s2f.selectOptions[inpName].Radio(inpName, valStrs))
+			fmt.Fprint(w, "\t</div>")
+			fmt.Fprint(w, "\t</div>")
+
 		case "select":
 			if structTag(attrs, "onchange") == "" {
 				needSubmit = true // select without auto submit => needs submit button

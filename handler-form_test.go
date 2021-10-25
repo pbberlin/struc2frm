@@ -29,7 +29,7 @@ func test(t *testing.T, method string) {
 	var postBody io.Reader
 
 	if method == "GET" {
-		pth = fmt.Sprintf("/?groups=%v&token=%v&items2=anton&items2=caesar",
+		pth = fmt.Sprintf("/?groups=%v&token=%v&items2=anton&items2=caesar&fruit=peach",
 			numGroups, token,
 		)
 		t.Logf("testing GET  request with \nnumGroups = %v ", numGroups)
@@ -40,6 +40,7 @@ func test(t *testing.T, method string) {
 		data.Set("items2", "anton")
 		data.Add("items2", "caesar")
 		data.Set("token", token)
+		data.Set("fruit", "peach")
 		postBody = strings.NewReader(data.Encode())
 		t.Logf(
 			"testing POST request with \nnumGroups = %v ; %v ",
@@ -122,6 +123,18 @@ Rtoynbsonnos, Tars</textarea>
 	<label for='check_this' style='' >Check this</label>
 	<input type='checkbox' name='check_this' id='check_this' value='true'   />
 	<input type='hidden' name='check_this' value='false' /><span class='postlabel' >without consequence</span>
+	<div style='height:0.6rem'>&nbsp;</div>
+	<label for='fruit' style='' >Fruit</label>
+	<div class='select-arrow'>
+	<div class='radio-group'>
+		<label for='fruit' >Pear</label>
+		<input type='radio' name='fruit' value='pear'  />
+		<label for='fruit' >Plum</label>
+		<input type='radio' name='fruit' value='plum'  />
+		<label for='fruit' >Peach</label>
+		<input type='radio' name='fruit' value='peach' checked="checked" />
+		<input type='radio' name='fruit' value='noanswer'  />
+	</div>	</div><span class='postlabel' >like dropdown</span>
 	<div style='height:0.6rem'>&nbsp;</div>
 </fieldset>
 	<button  type='submit' name='btnSubmit' value='1' accesskey='s'  ><b>S</b>ubmit</button>
