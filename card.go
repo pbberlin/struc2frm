@@ -87,7 +87,7 @@ func (s2f *s2FT) Card(intf interface{}) template.HTML {
 			if opts, ok := s2f.selectOptions[inpName]; ok {
 				for _, opt := range opts {
 					// log.Printf("For %12v: Comparing %5v to %5v  %5v", inpName, values[idx], opt.Key, opt.Val)
-					if values[idx] == opt.Key {
+					if values[idx] == opt.Key && opt.Val != "" {
 						values[idx] = opt.Val
 					}
 				}

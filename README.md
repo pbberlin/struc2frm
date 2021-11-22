@@ -184,9 +184,14 @@ These are `dummmy` fields for formatting only
 
 * Use `onchange='true'` for onchange submit
 
-#### Select multiple
+### Radiogroup
 
-* Use `multiple='true'` to enable the selection of __multiple items__  
+Like [select / dropdown](#select--dropdown-inputs),  
+but rendered as radio inputs.
+
+### Select multiple
+
+* Use subtype `select` with `multiple='true'` to enable the selection of __multiple items__  
   in conjunction with struct field type `[]string | []int | []float64 | []bool`
 
 * Use `wildcardselect='true'` to show an additional input after the select,  
@@ -199,9 +204,8 @@ accepting wildcard expressions with `*` for selecting options from the select.
   * To debug, open the Javascript console of your browser and type `wildcardselectDebug = true;`
 
 * Parsing of HTTP request into form struct for `multiple` fields  
-is __additive__.
-
-* => Init values should not be set before parsing but afterwards.  
+is __additive__.  
+=> Init values should not be set before parsing but afterwards.  
 
 ```golang
 // ...
@@ -212,10 +216,6 @@ if len(frm.Items2) == 0 {
     frm.Items2 = []string{"berta", "dora"} // setting defaults if request parsing did not yield any user input
 }
 ```
-
-### radiogroup
-
-Like select but rendered as radio inputs.
 
 ## Submit button
 
@@ -243,7 +243,7 @@ for mouse-over tooltips
 * Values inside of `label='...'`, `suffix='...'`, `title='...'`, `placeholder='...'`, `pattern='...'`  
 need `&comma;` instead  of `,`
 
-* Every field  can have an attribute `accesskey='t'`  
+* Every field  can have an attribute `accesskey='[a-z]'`  
 Accesskeys are not put into the label, but into the input tag
 
 * Every field  can have an attribute `nobreak='true'`  
@@ -406,7 +406,7 @@ HTML             |                1   |           6      |        1    |        
 * Default CSS is init-loaded from an in-package file `default.css`,  
 mostly to have syntax highlighting while editing it.
 
-## TODO
+## Todo
 
 * Can we use `0x2C` instead of `&comma;` ?
 
