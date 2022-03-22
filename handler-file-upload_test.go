@@ -60,7 +60,7 @@ func TestFileUpload(t *testing.T) {
 	}
 
 	// Check the response body
-	expected1 := `<form  name='frmMain'  method='post'   enctype='multipart/form-data'>
+	expected1 := `<form  name='frmMain'  action=''  method='POST'   enctype='multipart/form-data'>
 	<input name='token'    type='hidden'   value='%v' />
 	<label for='text_field' style='' >Text field</label>
 	<input type='text' name='text_field' id='text_field' value='posted-text'  maxlength='16' size='16' />

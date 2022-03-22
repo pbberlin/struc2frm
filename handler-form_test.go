@@ -72,7 +72,7 @@ func test(t *testing.T, method string) {
 
 	// Check the response body
 	expected := `<h3>Entry form</h3>
-<form name='frmMain'  method='POST' >
+<form name='frmMain'  action=''  method='POST' >
 	<input name='token'    type='hidden'   value='%v' />
 	<p class='error-block' >Missing department</p>
 	<label for='department' style='' >De<u>p</u>artment/Abteilung</label>

@@ -72,6 +72,7 @@ type s2FT struct {
 	ShowHeadline bool   // show headline derived from struct name
 	FormTag      bool   // include <form...> and </form>
 	Name         string // form name; default 'frmMain'; if distinct names are needed, application may change the values
+	Action       string // form action - default is empty string
 	Method       string // form method - default is POST
 	InstanceID   string // to distinguish several instances on same website
 
@@ -659,10 +660,10 @@ func (s2f *s2FT) Form(intf interface{}) template.HTML {
 
 	if s2f.FormTag {
 		if uploadPostForm {
-			fmt.Fprintf(w, "<form  name='%v'  method='post'   enctype='multipart/form-data'>\n", s2f.Name)
+			fmt.Fprintf(w, "<form  name='%v'  action='%v'  method='POST'   enctype='multipart/form-data'>\n", s2f.Name, s2f.Action)
 		} else {
 			// browser default encoding for post is "application/x-www-form-urlencoded"
-			fmt.Fprintf(w, "<form name='%v'  method='%v' >\n", s2f.Name, s2f.Method)
+			fmt.Fprintf(w, "<form name='%v'  action='%v'  method='%v' >\n", s2f.Name, s2f.Action, s2f.Method)
 		}
 	}
 

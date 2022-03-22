@@ -7,6 +7,7 @@
 [![GoDoc](http://godoc.org/github.com/pbberlin/struc2frm?status.svg)](https://godoc.org/github.com/pbberlin/struc2frm) 
 [![Travis Build](https://travis-ci.com/pbberlin/struc2frm.svg?branch=master)](https://travis-ci.com/pbberlin/struc2frm) 
 [![codecov](https://codecov.io/gh/pbberlin/struc2frm/branch/master/graph/badge.svg)](https://codecov.io/gh/pbberlin/struc2frm) 
+[![codecv2](https://github.com/pbberlin/struc2frm/actions/workflows/codecov.yml/badge.svg)](https://github.com/pbberlin/struc2frm/actions/workflows/codecov.yml) 
 
 * Package struc2frm converts a golang `struct type` into an `HTML input form`.
 
@@ -125,6 +126,8 @@ if !valid {
 * `FormTag` - suppress the surrounding `<form ...> ... </form>` if you want to compose a form from multiple structs.
 
 * `Name` - form name attribute; default `frmMain`
+
+* `Action` - HTML form action URL; default is empty string
 
 * `Method` - GET or POST; default `POST`
 
